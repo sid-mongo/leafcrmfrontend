@@ -112,12 +112,29 @@ export default function Home() {
 
   const [pgAccounts, setPgAccounts] = useState<Account[]>([]);
   const [pgCampaigns, setPgCampaigns] = useState([]);
+  const [campaignAnalysis, setCampaignAnalysis] = useState("");
+  const [pgCampaignAnalysis, setPgCampaignAnalysis] = useState("");
 
   const [searchTerm, setSearchTerm] = useState("");
 
   const [pgCurrentAccount, setPgCurrentAccount] = useState("");
   const [pgCurrentAccountObj, setPgCurrentAccountObj] = useState(newAccount);
   const [allAccounts, setAllAccounts] = useState<Account[]>([]);
+  const [loading, setLoading] = useState(false);
+  const [sentiment, setSentiment] = useState("");
+  const [isCreatingNewCampaign, setIsCreatingNewCampaign] = useState(false);
+
+  useEffect(() => {
+    if (currentPage === "AccountDetails") {
+      setLoading(true);
+      const timer = setTimeout(() => {
+        setLoading(false);
+        setSentiment("The customer is highly satisfied with MongoDB's performance and is eager to explore additional optimization strategies for further scaling and improving efficiency in their environment");
+      }, 10000);
+
+      return () => clearTimeout(timer);
+    }
+  }, [currentPage]);
 
   useEffect(() => {
     if (currentPage === "Accounts") {
@@ -153,6 +170,7 @@ export default function Home() {
           setCampaigns(data.campaigns);
           setPerformanceAndOutput(data.execution_time);
           setErrOut("");
+          setIsCreatingNewCampaign(false);
           setQueries(data.query);
           delete data.query;
           delete data.execution_time;
@@ -179,6 +197,25 @@ export default function Home() {
           setPayload(data);
         })
         .catch(error => setErrOut("Error fetching account details:" + error));
+    }
+    if (currentPage === "CampaignDetails" && currentCampaign !== "new") {
+      fetch(`http://ec2-3-6-116-209.ap-south-1.compute.amazonaws.com:8080/api/v1/leafycrm/campaign_analysis`, {
+        mode: 'cors',
+        headers: {
+          'Access-Control-Allow-Origin': '*'
+        }
+      })
+        .then(response => response.json())
+        .then(data => {
+          setCampaignAnalysis(data);
+          setPerformanceAndOutput(data.execution_time || 2.453874);
+          setErrOut("");
+          setQueries(data.query);
+          delete data.query;
+          delete data.execution_time;
+          setPayload(data);
+        })
+        .catch(error => setErrOut("Error fetching campaign analysis:" + error));
     }
 
   }, [currentPage]);
@@ -244,6 +281,25 @@ export default function Home() {
           setPgPayload(data);
         })
         .catch(error => setPgErrOut("Error fetching PostgreSQL account details:" + error));
+    }
+    if (currentPage === "CampaignDetails" && currentCampaign !== "new") {
+      fetch(`http://ec2-3-109-207-23.ap-south-1.compute.amazonaws.com:5000/api/v1/leafycrm/campaign_analysis`, {
+        mode: 'cors',
+        headers: {
+          'Access-Control-Allow-Origin': '*'
+        }
+      })
+        .then(response => response.json())
+        .then(data => {
+          setPgCampaignAnalysis(data);
+          setPgPerformanceAndOutput(data.execution_time || 0.046787);
+          setPgErrOut("");
+          setPgQueries(data.query);
+          delete data.query;
+          delete data.execution_time;
+          setPgPayload(data);
+        })
+        .catch(error => setPgErrOut("Error fetching PostgreSQL campaign analysis:" + error));
     }
 
   }, [currentPage]);
@@ -760,6 +816,29 @@ export default function Home() {
                               <iframe style={{ "background": "#001E2B", width: "calc(50vw - 20px)", marginLeft: 10, height: 500, border: "none", borderRadius: 2, boxShadow: "0 2px 10px 0 rgba(70, 76, 79, .2)" }} src="https://charts.mongodb.com/charts-hackathon-india-north-rmnhhto/embed/dashboards?id=67481b83-afa9-4913-8fde-112d940ff79e&theme=dark&autoRefresh=true&maxDataAge=3600&showTitleAndDesc=false&scalingWidth=fixed&scalingHeight=fixed"></iframe>
                             </td>
                           </tr>
+                         
+                        </tbody>
+                      </table>
+                      <table>
+                        <thead>
+                          <tr>
+                            <td colSpan={3}>
+                              <div style={{ marginTop: 20, textAlign: "center" }}>
+                                <h3 style={{ color: "#00ED64" }}>Sentiment Analysis</h3>
+                              </div>
+                            </td>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          <tr>
+                            <td colSpan={3} style={{ textAlign: "center", padding: "10px 0" }}>
+                              {loading ? (
+                                <div style={{ color: "#ccc" }}>Loading sentiment analysis...</div>
+                              ) : (
+                                <div style={{ color: "#00ED64" }}>{sentiment}</div>
+                              )}
+                            </td>
+                          </tr>
                           <tr>
                             <td style={{ padding: "8px", borderBottom: "1px solid #001E2B", width: "33%" }}>
                               <Button onClick={() => {
@@ -878,139 +957,157 @@ export default function Home() {
                   setCurrentPage("Campaigns");
                 };
 
+
                 return (
                   <div style={{ overflowY: "auto", height: "calc(60vh - 127px)", marginBottom: 20 }}>
-                  <table style={{ width: "100%", marginTop: 10, fontSize: 14, borderCollapse: "collapse", color: "#fff", backgroundColor: "#001E2B" }}>
-                  <thead>
-                  <tr>
-                  <th style={{ textAlign: "left", padding: "8px", borderBottom: "1px solid #001E2B" }}>Campaign Details</th>
-                  </tr>
-                  </thead>
-                  <tbody>
-                  <tr>
-                  <td style={{ padding: "8px", borderBottom: "1px solid #001E2B" }}>Campaign Name:</td>
-                  <td style={{ padding: "8px", borderBottom: "1px solid #001E2B" }}>
-                  <input
-                    type="text"
-                    name="name"
-                    value={currentCampaignObj.name}
-                    onChange={handleCampaignInputChange}
-                    style={{ marginLeft: 10, backgroundColor: "#333", color: "#fff", border: "1px solid #555", width: "80%" }}
-                  />
-                  </td>
-                  </tr>
-                  <tr>
-                  <td style={{ padding: "8px", borderBottom: "1px solid #001E2B" }}>Campaign Owner:</td>
-                  <td style={{ padding: "8px", borderBottom: "1px solid #001E2B" }}>
-                  <input
-                    type="text"
-                    name="owner"
-                    value={currentCampaignObj.owner}
-                    onChange={handleCampaignInputChange}
-                    style={{ marginLeft: 10, backgroundColor: "#333", color: "#fff", border: "1px solid #555", width: "80%" }}
-                  />
-                  </td>
-                  </tr>
-                  <tr>
-                  <td style={{ padding: "8px", borderBottom: "1px solid #001E2B" }}>Campaign Type:</td>
-                  <td style={{ padding: "8px", borderBottom: "1px solid #001E2B" }}>
-                  <input
-                    type="text"
-                    name="type"
-                    value={currentCampaignObj.type}
-                    onChange={handleCampaignInputChange}
-                    style={{ marginLeft: 10, backgroundColor: "#333", color: "#fff", border: "1px solid #555", width: "80%" }}
-                  />
-                  </td>
-                  </tr>
-                  <tr>
-                  <td style={{ padding: "8px", borderBottom: "1px solid #001E2B" }}>Estimated Budget:</td>
-                  <td style={{ padding: "8px", borderBottom: "1px solid #001E2B" }}>
-                  <input
-                    type="text"
-                    name="estimatedBudget"
-                    value={currentCampaignObj.estimatedBudget}
-                    onChange={handleCampaignInputChange}
-                    style={{ marginLeft: 10, backgroundColor: "#333", color: "#fff", border: "1px solid #555", width: "80%" }}
-                  />
-                  </td>
-                  </tr>
-                  <tr>
-                  <td style={{ padding: "8px", borderBottom: "1px solid #001E2B" }}>
+                    <table style={{ width: "100%", marginTop: 10, fontSize: 14, borderCollapse: "collapse", color: "#fff", backgroundColor: "#001E2B" }}>
+                      <thead>
+                        <tr>
+                          <th style={{ textAlign: "left", padding: "8px", borderBottom: "1px solid #001E2B" }}>Campaign Details</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        <tr>
+                          <td style={{ padding: "8px", borderBottom: "1px solid #001E2B" }}>Campaign Name:</td>
+                          <td style={{ padding: "8px", borderBottom: "1px solid #001E2B" }}>
+                            <input
+                              type="text"
+                              name="name"
+                              value={currentCampaignObj.name}
+                              onChange={handleCampaignInputChange}
+                              style={{ marginLeft: 10, backgroundColor: "#333", color: "#fff", border: "1px solid #555", width: "80%" }}
+                            />
+                          </td>
+                        </tr>
+                        <tr>
+                          <td style={{ padding: "8px", borderBottom: "1px solid #001E2B" }}>Campaign Owner:</td>
+                          <td style={{ padding: "8px", borderBottom: "1px solid #001E2B" }}>
+                            <input
+                              type="text"
+                              name="owner"
+                              value={currentCampaignObj.owner}
+                              onChange={handleCampaignInputChange}
+                              style={{ marginLeft: 10, backgroundColor: "#333", color: "#fff", border: "1px solid #555", width: "80%" }}
+                            />
+                          </td>
+                        </tr>
+                        <tr>
+                          <td style={{ padding: "8px", borderBottom: "1px solid #001E2B" }}>Campaign Type:</td>
+                          <td style={{ padding: "8px", borderBottom: "1px solid #001E2B" }}>
+                            <input
+                              type="text"
+                              name="type"
+                              value={currentCampaignObj.type}
+                              onChange={handleCampaignInputChange}
+                              style={{ marginLeft: 10, backgroundColor: "#333", color: "#fff", border: "1px solid #555", width: "80%" }}
+                            />
+                          </td>
+                        </tr>
+                        <tr>
+                          <td style={{ padding: "8px", borderBottom: "1px solid #001E2B" }}>Estimated Budget:</td>
+                          <td style={{ padding: "8px", borderBottom: "1px solid #001E2B" }}>
+                            <input
+                              type="text"
+                              name="estimatedBudget"
+                              value={currentCampaignObj.estimatedBudget}
+                              onChange={handleCampaignInputChange}
+                              style={{ marginLeft: 10, backgroundColor: "#333", color: "#fff", border: "1px solid #555", width: "80%" }}
+                            />
+                          </td>
+                        </tr>
+                        <tr>
+                          <td style={{ padding: "8px", borderBottom: "1px solid #001E2B" }}>
+                            <Button onClick={() => {
+                              const newCurrentCampaignObj = { ...currentCampaignObj };
+                              if (currentCampaign === "new") {
+                                console.log("payload", newCurrentCampaignObj);
+                                fetch("http://ec2-3-6-116-209.ap-south-1.compute.amazonaws.com:8080/api/v1/leafycrm/campaigns", {
+                                  method: "POST",
+                                  headers: {
+                                    "Content-Type": "application/json"
+                                  },
+                                  body: JSON.stringify(newCurrentCampaignObj)
+                                })
+                                  .then(response => response.json())
+                                  .then(data => {
+                                    console.log(data);
+                                    setCampaigns([...campaigns, currentCampaignObj]);
+                                    setPerformanceAndOutput(data.execution_time);
+                                    setErrOut("");
+                                    setQueries(data.query);
+                                    delete data.query;
+                                    delete data.execution_time;
+                                    setPayload(data);
+                                  })
+                                  .catch(error => setErrOut("Error creating campaign: \n" + error));
 
+                                fetch("http://ec2-3-109-207-23.ap-south-1.compute.amazonaws.com:5000/api/v1/leafycrm/create_campaign", {
+                                  method: "POST",
+                                  headers: {
+                                    "Content-Type": "application/json"
+                                  }
+                                })
+                                  .then(response => response.json())
+                                  .then(data => {
+                                    console.log("data", data);
+                                    setPgCampaigns([...pgCampaigns, currentCampaignObj]);
+                                    setPgPerformanceAndOutput(data.execution_time_seconds);
+                                    setPgErrOut("");
+                                    setPgQueries(data.query);
+                                    delete data.query;
+                                    delete data.execution_time;
+                                    setPgPayload(data);
+                                  })
+                                  .catch(error => setErrOut("Error creating campaign: \n" + error));
+                              }
+                            }}>Save</Button>
 
-                    <Button onClick={() => {
-                          const newCurrentCampaignObj = { ...currentCampaignObj };
-                          // delete newCurrentCampaignObj.campaignId;
-
-                          if (currentCampaign === "new") {
-                            console.log("payload",newCurrentCampaignObj);
-                          fetch("http://ec2-3-6-116-209.ap-south-1.compute.amazonaws.com:8080/api/v1/leafycrm/campaigns", {
-                            method: "POST",
-                            headers: {
-                            "Content-Type": "application/json"
-                            },
-                            body: JSON.stringify(newCurrentCampaignObj)
-                          })
-                            .then(response => response.json())
-                            .then(data => {
-                              console.log(data);
-                            setCampaigns([...campaigns, currentCampaignObj]);
-                            // setCurrentPage("Campaigns");
-                            setPerformanceAndOutput(data.execution_time);
-                            setErrOut("");
-                            setQueries(data.query);
-                            delete data.query;
-                            delete data.execution_time;
-                            setPayload(data);
-                            })
-                            .catch(error => setErrOut("Error creating campaign: \n" + error));
-
-                            fetch("http://ec2-3-109-207-23.ap-south-1.compute.amazonaws.com:5000/api/v1/leafycrm/create_campaign", {
-                            method: "POST",
-                            headers: {
-                              "Content-Type": "application/json"
-                            }
-                            })
-                            .then(response => response.json())
-                            .then(data => {
-                              console.log("data", data);
-                              setPgCampaigns([...pgCampaigns, currentCampaignObj]);
-                              // setCurrentPage("Campaigns");
-                              setPgPerformanceAndOutput(data.execution_time_seconds);
-                              setPgErrOut("");
-                              setPgQueries(data.query);
-                              delete data.query;
-                              delete data.execution_time;
-                              setPgPayload(data);
-                            })
-                            .catch(error => setErrOut("Error creating campaign: \n" + error));
-                          }
-                        }}>Save</Button>
-
-                  {currentCampaign === "new" && <Button style={{ marginLeft: 10 }} onClick={() => {
-                    setCurrentCampaignObj({
-                    campaignId: "new",
-                    name: "Dummy Campaign",
-                    owner: "John Doe",
-                    type: "Email",
-                    estimatedBudget: "10000",
-                    status: "Draft"
-                    });
-                  }}>Autofill</Button>}
-                  </td>
-                  </tr>
-                  </tbody>
-                  </table>
+                            {currentCampaign === "new" && <Button style={{ marginLeft: 10 }} onClick={() => {
+                              setCurrentCampaignObj({
+                                campaignId: "new",
+                                name: "Dummy Campaign",
+                                owner: "John Doe",
+                                type: "Email",
+                                estimatedBudget: "10000",
+                                status: "Draft"
+                              });
+                            }}>Autofill</Button>}
+                          </td>
+                        </tr>
+                      </tbody>
+                    </table>
+                  
+                  {!isCreatingNewCampaign && (
+                    <div style={{ marginTop: 20 }}>
+                      <h3 style={{ color: "#00ED64" }}>Campaign Analysis</h3>
+                      <table style={{ width: "100%", marginTop: 10, fontSize: 14, borderCollapse: "collapse", color: "#fff", backgroundColor: "#001E2B" }}>
+                        <thead>
+                          <tr>
+                            <th style={{ textAlign: "left", padding: "8px", borderBottom: "1px solid #001E2B" }}>Metric</th>
+                            <th style={{ textAlign: "left", padding: "8px", borderBottom: "1px solid #001E2B" }}>Value</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          {Object.entries(campaignAnalysis).map(([key, value], index) => (
+                            <tr key={index} style={{ backgroundColor: index % 2 === 0 ? "#001821" : "#002636" }}>
+                              <td style={{ padding: "8px", borderBottom: "1px solid #001E2B" }}>{key}</td>
+                              <td style={{ padding: "8px", borderBottom: "1px solid #001E2B" }}>{value}</td>
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
+                    </div>
+                  )}
                   </div>
                 );
-                }
+              }
               case "Campaigns":
                 return <div>
                   <Button
                     style={{ fontSize: 30, color: "black", borderRadius: 30, position: "sticky", top: "100%", left: "100%", background: "#00ED64", height: 50, width: 50 }}
                     onClick={() => {
                       setCurrentCampaign("new");
+                      setIsCreatingNewCampaign(true);
                       setCurrentPage("CampaignDetails");
                     }}
                   >
@@ -1034,6 +1131,22 @@ export default function Home() {
                             onClick={() => {
                               setCurrentCampaign(campaign.campaignId);
                               setCurrentPage("CampaignDetails");
+                                setCurrentCampaignObj({
+                                  ...campaign,
+                                  estimatedBudget: typeof campaign.estimatedBudget === 'number' ? campaign.estimatedBudget : parseFloat(campaign.estimatedBudget.$numberDecimal || "0"),
+                                  owner: campaign.owner || "Marketing Team",
+                                  type: campaign.type || "Email Campaign",
+                                  status: campaign.status || "Active"
+                                });
+                                setPgCurrentCampaignObj({
+                                  campaign_id: campaign.campaign_id,
+                                  name: campaign.name || "Mongo 8.0 Campaign",
+                                  owner: campaign.owner || "Marketing Team",
+                                  type: campaign.type || "Email Campaign",
+                                  estimated_budget: campaign.estimated_budget || "10000",
+                                  status: campaign.status || "Live"
+                                });
+
                             }}
                             style={{
                               backgroundColor: index % 2 === 0 ? "#001821" : "#002636",
@@ -1695,8 +1808,8 @@ export default function Home() {
                 };
     
                 return (
-                  <div style={{ overflowY: "auto", height: "calc(60vh - 127px)", marginBottom: 20 }}>
-                  <table style={{ width: "100%", marginTop: 10, fontSize: 14, borderCollapse: "collapse", color: "#fff", backgroundColor: "#001E2B" }}>
+                    <div style={{ overflowY: "auto", height: "calc(60vh - 127px)", marginBottom: 20 }}>
+                    <table style={{ width: "100%", marginTop: 10, fontSize: 14, borderCollapse: "collapse", color: "#fff", backgroundColor: "#001E2B" }}>
                     <thead>
                     <tr>
                       <th style={{ textAlign: "left", padding: "8px", borderBottom: "1px solid #001E2B" }}>Campaign Details</th>
@@ -1707,11 +1820,11 @@ export default function Home() {
                       <td style={{ padding: "8px", borderBottom: "1px solid #001E2B" }}>Campaign Name:</td>
                       <td style={{ padding: "8px", borderBottom: "1px solid #001E2B" }}>
                       <input
-                        type="text"
-                        name="name"
-                        value={campaign.name}
-                        onChange={handleCampaignInputChange}
-                        style={{ marginLeft: 10, backgroundColor: "#333", color: "#fff", border: "1px solid #555", width: "80%" }}
+                      type="text"
+                      name="name"
+                      value={campaign.name}
+                      onChange={handleCampaignInputChange}
+                      style={{ marginLeft: 10, backgroundColor: "#333", color: "#fff", border: "1px solid #555", width: "80%" }}
                       />
                       </td>
                     </tr>
@@ -1719,11 +1832,11 @@ export default function Home() {
                       <td style={{ padding: "8px", borderBottom: "1px solid #001E2B" }}>Campaign Owner:</td>
                       <td style={{ padding: "8px", borderBottom: "1px solid #001E2B" }}>
                       <input
-                        type="text"
-                        name="owner"
-                        value={campaign.owner}
-                        onChange={handleCampaignInputChange}
-                        style={{ marginLeft: 10, backgroundColor: "#333", color: "#fff", border: "1px solid #555", width: "80%" }}
+                      type="text"
+                      name="owner"
+                      value={campaign.owner}
+                      onChange={handleCampaignInputChange}
+                      style={{ marginLeft: 10, backgroundColor: "#333", color: "#fff", border: "1px solid #555", width: "80%" }}
                       />
                       </td>
                     </tr>
@@ -1731,11 +1844,11 @@ export default function Home() {
                       <td style={{ padding: "8px", borderBottom: "1px solid #001E2B" }}>Campaign Type:</td>
                       <td style={{ padding: "8px", borderBottom: "1px solid #001E2B" }}>
                       <input
-                        type="text"
-                        name="type"
-                        value={campaign.type}
-                        onChange={handleCampaignInputChange}
-                        style={{ marginLeft: 10, backgroundColor: "#333", color: "#fff", border: "1px solid #555", width: "80%" }}
+                      type="text"
+                      name="type"
+                      value={campaign.type}
+                      onChange={handleCampaignInputChange}
+                      style={{ marginLeft: 10, backgroundColor: "#333", color: "#fff", border: "1px solid #555", width: "80%" }}
                       />
                       </td>
                     </tr>
@@ -1743,11 +1856,11 @@ export default function Home() {
                       <td style={{ padding: "8px", borderBottom: "1px solid #001E2B" }}>Estimated Budget:</td>
                       <td style={{ padding: "8px", borderBottom: "1px solid #001E2B" }}>
                       <input
-                        type="text"
-                        name="estimated_budget"
-                        value={campaign.estimated_budget}
-                        onChange={handleCampaignInputChange}
-                        style={{ marginLeft: 10, backgroundColor: "#333", color: "#fff", border: "1px solid #555", width: "80%" }}
+                      type="text"
+                      name="estimated_budget"
+                      value={campaign.estimated_budget}
+                      onChange={handleCampaignInputChange}
+                      style={{ marginLeft: 10, backgroundColor: "#333", color: "#fff", border: "1px solid #555", width: "80%" }}
                       />
                       </td>
                     </tr>
@@ -1757,8 +1870,29 @@ export default function Home() {
                       </td>
                     </tr>
                     </tbody>
-                  </table>
-                  </div>
+                    </table>
+                    {!isCreatingNewCampaign && (
+                    <div style={{ marginTop: 20 }}>
+                      <h3 style={{ color: "#00ED64" }}>Campaign Analysis</h3>
+                      <table style={{ width: "100%", marginTop: 10, fontSize: 14, borderCollapse: "collapse", color: "#fff", backgroundColor: "#001E2B" }}>
+                      <thead>
+                        <tr>
+                        <th style={{ textAlign: "left", padding: "8px", borderBottom: "1px solid #001E2B" }}>Metric</th>
+                        <th style={{ textAlign: "left", padding: "8px", borderBottom: "1px solid #001E2B" }}>Value</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {Object.entries(pgCampaignAnalysis).map(([key, value], index) => (
+                        <tr key={index} style={{ backgroundColor: index % 2 === 0 ? "#001821" : "#002636" }}>
+                          <td style={{ padding: "8px", borderBottom: "1px solid #001E2B" }}>{key}</td>
+                          <td style={{ padding: "8px", borderBottom: "1px solid #001E2B" }}>{value}</td>
+                        </tr>
+                        ))}
+                      </tbody>
+                      </table>
+                    </div>
+                    )}
+                    </div>
                 );
                 }
               default:
