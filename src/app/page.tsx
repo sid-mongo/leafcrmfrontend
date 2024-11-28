@@ -86,6 +86,17 @@ export default function Home() {
   const [accounts, setAccounts] = useState<Account[]>([]);
   const [currentAccount, setCurrentAccount] = useState("");
   const [currentAccountObj, setCurrentAccountObj] = useState(newAccount);
+  const newCampaign = {
+    campaignId: "new",
+    name: "",
+    owner: "",
+    type: "",
+    estimatedBudget: "",
+    status: "Draft"
+  };
+
+  const [currentCampaign, setCurrentCampaign] = useState("");
+  const [currentCampaignObj, setCurrentCampaignObj] = useState(newCampaign);
   const [createWithOpp, setCreateWithOpp] = useState(false);
   const [performanceAndOutput, setPerformanceAndOutput] = useState("");
   const [errOut, setErrOut] = useState("");
@@ -237,9 +248,42 @@ export default function Home() {
 
   }, [currentPage]);
 
+  const [campaign, setCampaign] = useState(() => {
+    const foundCampaign = campaigns.find(camp => camp.campaignId === currentCampaign);
+    if (!foundCampaign && currentCampaign !== "new") {
+    return null;
+    } else if (!foundCampaign) {
+    return {
+      campaignId: "new",
+      name: "",
+      owner: "",
+      type: "",
+      estimatedBudget: "",
+      status: "Draft"
+    };
+    }
+    return foundCampaign;
+  });
+
+  useEffect(() => {
+    const foundCampaign = campaigns.find(camp => camp.campaignId === currentCampaign);
+    if (!foundCampaign && currentCampaign !== "new") {
+    setCampaign(null);
+    } else if (!foundCampaign) {
+    setCampaign({
+      campaignId: "new",
+      name: "",
+      owner: "",
+      type: "",
+      estimatedBudget: "",
+      status: "Draft"
+    });
+    } else {
+    setCampaign(foundCampaign);
+    }
+  }, [currentCampaign, campaigns]);
 
 
-  const [currentCampaign, setCurrentCampaign] = useState("");
   const [currentInteraction, setCurrentInteraction] = useState("");
   const [currentOpportunity, setCurrentOpportunity] = useState("");
 
@@ -805,6 +849,162 @@ export default function Home() {
                   </>
                 );
               }
+                case "CampaignDetails": {
+                const handleCampaignInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+                  const { name, value } = e.target;
+                  const newCurrentCampaignObj = JSON.parse(JSON.stringify(currentCampaignObj));
+
+                  switch (name) {
+                  case "name":
+                  newCurrentCampaignObj.name = value;
+                  break;
+                  case "owner":
+                  newCurrentCampaignObj.owner = value;
+                  break;
+                  case "type":
+                  newCurrentCampaignObj.type = value;
+                  break;
+                  case "estimatedBudget":
+                  newCurrentCampaignObj.estimatedBudget = value;
+                  break;
+                  default:
+                  break;
+                  }
+
+                  setCurrentCampaignObj(newCurrentCampaignObj);
+                };
+
+                const handleSave = () => {
+                  setCurrentPage("Campaigns");
+                };
+
+                return (
+                  <div style={{ overflowY: "auto", height: "calc(60vh - 127px)", marginBottom: 20 }}>
+                  <table style={{ width: "100%", marginTop: 10, fontSize: 14, borderCollapse: "collapse", color: "#fff", backgroundColor: "#001E2B" }}>
+                  <thead>
+                  <tr>
+                  <th style={{ textAlign: "left", padding: "8px", borderBottom: "1px solid #001E2B" }}>Campaign Details</th>
+                  </tr>
+                  </thead>
+                  <tbody>
+                  <tr>
+                  <td style={{ padding: "8px", borderBottom: "1px solid #001E2B" }}>Campaign Name:</td>
+                  <td style={{ padding: "8px", borderBottom: "1px solid #001E2B" }}>
+                  <input
+                    type="text"
+                    name="name"
+                    value={currentCampaignObj.name}
+                    onChange={handleCampaignInputChange}
+                    style={{ marginLeft: 10, backgroundColor: "#333", color: "#fff", border: "1px solid #555", width: "80%" }}
+                  />
+                  </td>
+                  </tr>
+                  <tr>
+                  <td style={{ padding: "8px", borderBottom: "1px solid #001E2B" }}>Campaign Owner:</td>
+                  <td style={{ padding: "8px", borderBottom: "1px solid #001E2B" }}>
+                  <input
+                    type="text"
+                    name="owner"
+                    value={currentCampaignObj.owner}
+                    onChange={handleCampaignInputChange}
+                    style={{ marginLeft: 10, backgroundColor: "#333", color: "#fff", border: "1px solid #555", width: "80%" }}
+                  />
+                  </td>
+                  </tr>
+                  <tr>
+                  <td style={{ padding: "8px", borderBottom: "1px solid #001E2B" }}>Campaign Type:</td>
+                  <td style={{ padding: "8px", borderBottom: "1px solid #001E2B" }}>
+                  <input
+                    type="text"
+                    name="type"
+                    value={currentCampaignObj.type}
+                    onChange={handleCampaignInputChange}
+                    style={{ marginLeft: 10, backgroundColor: "#333", color: "#fff", border: "1px solid #555", width: "80%" }}
+                  />
+                  </td>
+                  </tr>
+                  <tr>
+                  <td style={{ padding: "8px", borderBottom: "1px solid #001E2B" }}>Estimated Budget:</td>
+                  <td style={{ padding: "8px", borderBottom: "1px solid #001E2B" }}>
+                  <input
+                    type="text"
+                    name="estimatedBudget"
+                    value={currentCampaignObj.estimatedBudget}
+                    onChange={handleCampaignInputChange}
+                    style={{ marginLeft: 10, backgroundColor: "#333", color: "#fff", border: "1px solid #555", width: "80%" }}
+                  />
+                  </td>
+                  </tr>
+                  <tr>
+                  <td style={{ padding: "8px", borderBottom: "1px solid #001E2B" }}>
+
+
+                    <Button onClick={() => {
+                          const newCurrentCampaignObj = { ...currentCampaignObj };
+                          // delete newCurrentCampaignObj.campaignId;
+
+                          if (currentCampaign === "new") {
+                            console.log("payload",newCurrentCampaignObj);
+                          fetch("http://ec2-3-6-116-209.ap-south-1.compute.amazonaws.com:8080/api/v1/leafycrm/campaigns", {
+                            method: "POST",
+                            headers: {
+                            "Content-Type": "application/json"
+                            },
+                            body: JSON.stringify(newCurrentCampaignObj)
+                          })
+                            .then(response => response.json())
+                            .then(data => {
+                              console.log(data);
+                            setCampaigns([...campaigns, currentCampaignObj]);
+                            // setCurrentPage("Campaigns");
+                            setPerformanceAndOutput(data.execution_time);
+                            setErrOut("");
+                            setQueries(data.query);
+                            delete data.query;
+                            delete data.execution_time;
+                            setPayload(data);
+                            })
+                            .catch(error => setErrOut("Error creating campaign: \n" + error));
+
+                            fetch("http://ec2-3-109-207-23.ap-south-1.compute.amazonaws.com:5000/api/v1/leafycrm/create_campaign", {
+                            method: "POST",
+                            headers: {
+                              "Content-Type": "application/json"
+                            }
+                            })
+                            .then(response => response.json())
+                            .then(data => {
+                              console.log("data", data);
+                              setPgCampaigns([...pgCampaigns, currentCampaignObj]);
+                              // setCurrentPage("Campaigns");
+                              setPgPerformanceAndOutput(data.execution_time_seconds);
+                              setPgErrOut("");
+                              setPgQueries(data.query);
+                              delete data.query;
+                              delete data.execution_time;
+                              setPgPayload(data);
+                            })
+                            .catch(error => setErrOut("Error creating campaign: \n" + error));
+                          }
+                        }}>Save</Button>
+
+                  {currentCampaign === "new" && <Button style={{ marginLeft: 10 }} onClick={() => {
+                    setCurrentCampaignObj({
+                    campaignId: "new",
+                    name: "Dummy Campaign",
+                    owner: "John Doe",
+                    type: "Email",
+                    estimatedBudget: "10000",
+                    status: "Draft"
+                    });
+                  }}>Autofill</Button>}
+                  </td>
+                  </tr>
+                  </tbody>
+                  </table>
+                  </div>
+                );
+                }
               case "Campaigns":
                 return <div>
                   <Button
@@ -867,102 +1067,7 @@ export default function Home() {
                   </div>
                 </div>;
 
-              case "CampaignDetails": {
-                let campaign = campaigns.find(camp => camp.CampaignId === currentCampaign);
-
-                if (!campaign && currentCampaign !== "new") {
-                  return <div style={{ overflowY: "auto", height: "calc(60vh - 127px)", marginBottom: 20, marginTop: -50 }}>Campaign not found</div>;
-                } else if (!campaign) {
-                  campaign = {
-                    CampaignId: "new",
-                    CampaignName: "",
-                    CampaignOwner: "",
-                    CampaignType: "",
-                    EstimatedBudget: "",
-                    Status: "Draft"
-                  };
-                }
-
-                const handleCampaignInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-                  const { name, value } = e.target;
-                  setCampaigns(prevCampaigns =>
-                    prevCampaigns.map(camp =>
-                      camp.CampaignId === currentCampaign ? { ...camp, [name]: value } : camp
-                    )
-                  );
-                };
-
-                const handleSave = () => {
-                  setCurrentPage("Campaigns");
-                };
-
-                return (
-                  <div style={{ overflowY: "auto", height: "calc(60vh - 127px)", marginBottom: 20 }}>
-                    <table style={{ width: "100%", marginTop: 10, fontSize: 14, borderCollapse: "collapse", color: "#fff", backgroundColor: "#001E2B" }}>
-                      <thead>
-                        <tr>
-                          <th style={{ textAlign: "left", padding: "8px", borderBottom: "1px solid #001E2B" }}>Campaign Details</th>
-                        </tr>
-                      </thead>
-                      <tbody>
-                        <tr>
-                          <td style={{ padding: "8px", borderBottom: "1px solid #001E2B" }}>Campaign Name:</td>
-                          <td style={{ padding: "8px", borderBottom: "1px solid #001E2B" }}>
-                            <input
-                              type="text"
-                              name="CampaignName"
-                              value={campaign.CampaignName}
-                              onChange={handleCampaignInputChange}
-                              style={{ marginLeft: 10, backgroundColor: "#333", color: "#fff", border: "1px solid #555", width: "80%" }}
-                            />
-                          </td>
-                        </tr>
-                        <tr>
-                          <td style={{ padding: "8px", borderBottom: "1px solid #001E2B" }}>Campaign Owner:</td>
-                          <td style={{ padding: "8px", borderBottom: "1px solid #001E2B" }}>
-                            <input
-                              type="text"
-                              name="CampaignOwner"
-                              value={campaign.CampaignOwner}
-                              onChange={handleCampaignInputChange}
-                              style={{ marginLeft: 10, backgroundColor: "#333", color: "#fff", border: "1px solid #555", width: "80%" }}
-                            />
-                          </td>
-                        </tr>
-                        <tr>
-                          <td style={{ padding: "8px", borderBottom: "1px solid #001E2B" }}>Campaign Type:</td>
-                          <td style={{ padding: "8px", borderBottom: "1px solid #001E2B" }}>
-                            <input
-                              type="text"
-                              name="CampaignType"
-                              value={campaign.CampaignType}
-                              onChange={handleCampaignInputChange}
-                              style={{ marginLeft: 10, backgroundColor: "#333", color: "#fff", border: "1px solid #555", width: "80%" }}
-                            />
-                          </td>
-                        </tr>
-                        <tr>
-                          <td style={{ padding: "8px", borderBottom: "1px solid #001E2B" }}>Estimated Budget:</td>
-                          <td style={{ padding: "8px", borderBottom: "1px solid #001E2B" }}>
-                            <input
-                              type="text"
-                              name="EstimatedBudget"
-                              value={campaign.EstimatedBudget}
-                              onChange={handleCampaignInputChange}
-                              style={{ marginLeft: 10, backgroundColor: "#333", color: "#fff", border: "1px solid #555", width: "80%" }}
-                            />
-                          </td>
-                        </tr>
-                        <tr>
-                          <td style={{ padding: "8px", borderBottom: "1px solid #001E2B" }}>
-                            <Button onClick={handleSave}>Save</Button>
-                          </td>
-                        </tr>
-                      </tbody>
-                    </table>
-                  </div>
-                );
-              }
+              
 
               case "Interactions":
                 return <div style={{ overflowY: "auto", height: "calc(60vh - 127px)", marginBottom: 20 }}>
@@ -1560,6 +1665,102 @@ export default function Home() {
                   </>
                 );
               }
+              case "CampaignDetails": {
+                let campaign = pgCampaigns.find(camp => camp.campaign_id === currentCampaign);
+    
+                if (!campaign && currentCampaign !== "new") {
+                  return <div style={{ overflowY: "auto", height: "calc(60vh - 127px)", marginBottom: 20, marginTop: -50 }}>Campaign not found</div>;
+                } else if (!campaign) {
+                  campaign = {
+                  campaign_id: "new",
+                  name: "",
+                  owner: "",
+                  type: "",
+                  estimated_budget: "",
+                  status: "Draft"
+                  };
+                }
+    
+                const handleCampaignInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+                  const { name, value } = e.target;
+                  setPgCampaigns(prevCampaigns =>
+                  prevCampaigns.map(camp =>
+                    camp.campaign_id === currentCampaign ? { ...camp, [name]: value } : camp
+                  )
+                  );
+                };
+    
+                const handleSave = () => {
+                  setCurrentPage("Campaigns");
+                };
+    
+                return (
+                  <div style={{ overflowY: "auto", height: "calc(60vh - 127px)", marginBottom: 20 }}>
+                  <table style={{ width: "100%", marginTop: 10, fontSize: 14, borderCollapse: "collapse", color: "#fff", backgroundColor: "#001E2B" }}>
+                    <thead>
+                    <tr>
+                      <th style={{ textAlign: "left", padding: "8px", borderBottom: "1px solid #001E2B" }}>Campaign Details</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    <tr>
+                      <td style={{ padding: "8px", borderBottom: "1px solid #001E2B" }}>Campaign Name:</td>
+                      <td style={{ padding: "8px", borderBottom: "1px solid #001E2B" }}>
+                      <input
+                        type="text"
+                        name="name"
+                        value={campaign.name}
+                        onChange={handleCampaignInputChange}
+                        style={{ marginLeft: 10, backgroundColor: "#333", color: "#fff", border: "1px solid #555", width: "80%" }}
+                      />
+                      </td>
+                    </tr>
+                    <tr>
+                      <td style={{ padding: "8px", borderBottom: "1px solid #001E2B" }}>Campaign Owner:</td>
+                      <td style={{ padding: "8px", borderBottom: "1px solid #001E2B" }}>
+                      <input
+                        type="text"
+                        name="owner"
+                        value={campaign.owner}
+                        onChange={handleCampaignInputChange}
+                        style={{ marginLeft: 10, backgroundColor: "#333", color: "#fff", border: "1px solid #555", width: "80%" }}
+                      />
+                      </td>
+                    </tr>
+                    <tr>
+                      <td style={{ padding: "8px", borderBottom: "1px solid #001E2B" }}>Campaign Type:</td>
+                      <td style={{ padding: "8px", borderBottom: "1px solid #001E2B" }}>
+                      <input
+                        type="text"
+                        name="type"
+                        value={campaign.type}
+                        onChange={handleCampaignInputChange}
+                        style={{ marginLeft: 10, backgroundColor: "#333", color: "#fff", border: "1px solid #555", width: "80%" }}
+                      />
+                      </td>
+                    </tr>
+                    <tr>
+                      <td style={{ padding: "8px", borderBottom: "1px solid #001E2B" }}>Estimated Budget:</td>
+                      <td style={{ padding: "8px", borderBottom: "1px solid #001E2B" }}>
+                      <input
+                        type="text"
+                        name="estimated_budget"
+                        value={campaign.estimated_budget}
+                        onChange={handleCampaignInputChange}
+                        style={{ marginLeft: 10, backgroundColor: "#333", color: "#fff", border: "1px solid #555", width: "80%" }}
+                      />
+                      </td>
+                    </tr>
+                    <tr>
+                      <td style={{ padding: "8px", borderBottom: "1px solid #001E2B" }}>
+                      <Button onClick={handleSave}>Save</Button>
+                      </td>
+                    </tr>
+                    </tbody>
+                  </table>
+                  </div>
+                );
+                }
               default:
                 return null;
             }
