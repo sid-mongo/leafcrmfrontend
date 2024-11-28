@@ -224,8 +224,8 @@ export default function Home() {
                             <td style={{ padding: "8px", borderBottom: "1px solid #001E2B" }}>{account._id}</td>
                             <td style={{ padding: "8px", borderBottom: "1px solid #001E2B" }}>{account.name}</td>
                             <td style={{ padding: "8px", borderBottom: "1px solid #001E2B" }}>{account.industry}</td>
-                            <td style={{ padding: "8px", textAlign: "right", borderBottom: "1px solid #001E2B" }}>$ {(account.revenue.$numberDecimal && parseInt(account.revenue.$numberDecimal) || account.revenue).toLocaleString()}</td>
-                            <td style={{ padding: "8px", textAlign: "right", borderBottom: "1px solid #001E2B" }}>$ {(account.spent.$numberDecimal && parseInt(account.spent.$numberDecimal) || account.spent).toLocaleString()}</td>
+                            <td style={{ padding: "8px", textAlign: "right", borderBottom: "1px solid #001E2B" }}>$ {(typeof account.revenue === 'object' && account.revenue.$numberDecimal ? parseInt(account.revenue.$numberDecimal) : account.revenue).toLocaleString()}</td>
+                            <td style={{ padding: "8px", textAlign: "right", borderBottom: "1px solid #001E2B" }}>$ {(typeof account.spent === 'object' && account.spent.$numberDecimal ? parseInt(account.spent.$numberDecimal) : account.spent).toLocaleString()}</td>
                           </tr>
                         ))}
                       </tbody>
@@ -360,7 +360,7 @@ export default function Home() {
                             <input
                               type="text"
                               name="Revenue"
-                              value={(currentAccountObj.revenue.$numberDecimal && parseInt(currentAccountObj.revenue.$numberDecimal) || currentAccountObj.revenue)}
+                              value={typeof currentAccountObj.revenue === 'object' && currentAccountObj.revenue.$numberDecimal ? parseInt(currentAccountObj.revenue.$numberDecimal) : currentAccountObj.revenue}
                               onChange={handleInputChange}
                               style={{ marginLeft: 10, backgroundColor: "#333", color: "#fff", border: "1px solid #555", width: "80%" }}
                             />
