@@ -109,7 +109,7 @@ export default function Home() {
   }]);
 
   useEffect(() => {
-    fetch("https://leafycrm-backend-sa-ncr.sa-demo.staging.corp.mongodb.com/api/v1/leafycrm/accounts")
+    fetch("https://leafycrm-backend-sa-ncr.sa-demo.staging.corp.mongodb.com/api/v1/leafycrm/accounts", { mode: 'no-cors' })
       .then(response => response.json())
       .then(data => {
         setAccounts(data.accounts);
