@@ -6,6 +6,7 @@ export function NavBar() {
   const [isCostShown, setIsCostShown] = useState(false);
   const [isFailoverShown, setIsFailoverShown] = useState(false);
   const [isMigrationShown, setIsMigrationShown] = useState(false);
+  const [isTextToGraphShown, setIsTextToGraphShown] = useState(false);
 
   return (
     <div>
@@ -19,6 +20,8 @@ export function NavBar() {
             onClick={() => {
               setIsCostShown(false);
               setIsFailoverShown(false);
+              setIsMigrationShown(false);
+              setIsTextToGraphShown(false);
             }}
             style={{
               background: "#0090c9",
@@ -39,6 +42,7 @@ export function NavBar() {
               setIsCostShown(true);
               setIsFailoverShown(false);
               setIsMigrationShown(false);
+              setIsTextToGraphShown(false);
             }}
           >
             Cost
@@ -54,6 +58,7 @@ export function NavBar() {
               setIsCostShown(false);
               setIsFailoverShown(true);
               setIsMigrationShown(false);
+              setIsTextToGraphShown(false);
             }}
           >
             Failover Simulation
@@ -69,9 +74,26 @@ export function NavBar() {
             setIsCostShown(false);
             setIsFailoverShown(false);
             setIsMigrationShown(true);
+            setIsTextToGraphShown(false);
           }}
         >
           Migration
+        </Button>
+        <Button
+          style={{
+            marginLeft: 5,
+            background: "#0090c9",
+            color: "black",
+            fontWeight: "bold"
+          }}
+          onClick={() => {
+            setIsCostShown(false);
+            setIsFailoverShown(false);
+            setIsMigrationShown(false);
+            setIsTextToGraphShown(true);
+          }}
+        >
+          Text to Graph
         </Button>
         </div>
       </div>
@@ -109,6 +131,11 @@ export function NavBar() {
       {isMigrationShown && <div style={{ position: "absolute", zIndex: 99999, top: 57, bottom: 10, background: "#001E2B", display: "flex", left: 10, right: 10 }} >
         <div style={{ flex: 1 }}></div>
         <video src="./rm.mov" autoPlay />
+        <div style={{ flex: 1 }}></div>
+      </div>}
+      {isTextToGraphShown && <div style={{ position: "absolute", zIndex: 99999, top: 57, bottom: 10, background: "#001E2B", display: "flex", left: 10, right: 10 }} >
+        <div style={{ flex: 1 }}></div>
+        <video src="./text-to-graph.mov" autoPlay />
         <div style={{ flex: 1 }}></div>
       </div>}
     </div>
