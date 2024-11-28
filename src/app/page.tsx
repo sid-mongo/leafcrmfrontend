@@ -102,6 +102,8 @@ export default function Home() {
   const [pgAccounts, setPgAccounts] = useState<Account[]>([]);
   const [pgCampaigns, setPgCampaigns] = useState([]);
 
+  const [searchTerm, setSearchTerm] = useState("");
+
   useEffect(() => {
     if (currentPage === "Accounts") {
       fetch("http://ec2-3-6-116-209.ap-south-1.compute.amazonaws.com:8080/api/v1/leafycrm/accounts", {
@@ -207,6 +209,34 @@ export default function Home() {
           <div style={{ flex: 1, paddingTop: 4 }}>
             <img style={{ height: 24, display: "inline", paddingLeft: 5 }} src="./assets/mongodb_logo.png" />
           </div>
+          <div style={{ position: "relative" }}>
+            <input
+              type="text"
+              placeholder="Search..."
+              style={{ marginRight: 10, padding: 3, height: 30, width: 200, transform: "translateY(2px)", fontSize: 12, borderRadius: 3, border: "1px solid #555", backgroundColor: "#333", color: "#fff" }}
+              onChange={(e) => setSearchTerm(e.currentTarget.value)}
+              value={searchTerm}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter') {
+                  const searchTerm = e.currentTarget.value.toLowerCase();
+                  setAllAccounts(JSON.parse(JSON.stringify(accounts)));
+                  // setAccounts(prevAccounts => prevAccounts.filter(account => account.name.toLowerCase().includes(searchTerm)));
+                  fetch(`http://localhost:8080/api/v1/leafycrm/search?search_term=${searchTerm}&search_entity=account`)
+                    .then(response => response.json())
+                    .then(data => {
+                      setAccounts(data.account);
+                      setPerformanceAndOutput(data.execution_time);
+                      setErrOut("");
+                      setQueries(data.query);
+                      delete data.query;
+                      delete data.execution_time;
+                      setPayload(data);
+                    })
+                    .catch(error => setErrOut("Error fetching accounts:" + error));
+                }
+              }}
+            />
+          
           <Button
             style={{
               background: currentPage.startsWith("Account") ? "#0090c9" : "#003a51",
@@ -219,6 +249,7 @@ export default function Home() {
           >
             Accounts
           </Button>
+          </div>
           <Button
             style={{
               background: currentPage === "Campaigns" ? "#0090c9" : "#003a51",
@@ -1033,9 +1064,9 @@ export default function Home() {
               <tbody>
             {pgCampaigns.map((campaign, index) => (
               <tr
-                key={campaign.campaignId}
+                key={campaign.campaign_id}
                 onClick={() => {
-              setCurrentCampaign(campaign.campaignId);
+              setCurrentCampaign(campaign.campaign_id);
               setCurrentPage("CampaignDetails");
                 }}
                 style={{
@@ -1045,10 +1076,10 @@ export default function Home() {
                 onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = "#004057")}
                 onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = index % 2 === 0 ? "#001821" : "#002636")}
               >
-                <td style={{ padding: "8px", borderBottom: "1px solid #001E2B" }}>{campaign.campaignId}</td>
+                <td style={{ padding: "8px", borderBottom: "1px solid #001E2B" }}>{campaign.campaign_id}</td>
                 <td style={{ padding: "8px", borderBottom: "1px solid #001E2B" }}>{campaign.name}</td>
                 <td style={{ padding: "8px", borderBottom: "1px solid #001E2B" }}>{campaign.industry}</td>
-                <td style={{ padding: "8px", borderBottom: "1px solid #001E2B" }}>{new Date(campaign.endDate).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' })}</td>
+                <td style={{ padding: "8px", borderBottom: "1px solid #001E2B" }}>{new Date(campaign.endDate).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' }).replace(/(\d{2}) (\w{3}) (\d{4})/, '$1 $2 $3')}</td>
                 <td style={{ padding: "8px", borderBottom: "1px solid #001E2B" }}>
               <span style={{
                 display: "inline-block",
