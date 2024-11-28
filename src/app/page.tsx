@@ -94,33 +94,40 @@ export default function Home() {
   const [payload, setPayload] = useState("");
   const [queries, setQueries] = useState("");
 
-  const [campaigns, setCampaigns] = useState([{
-    CampaignId: "campaign1",
-    CampaignName: "Campaign One",
-    CampaignOwner: "Owner One",
-    CampaignType: "Type One",
-    EstimatedBudget: "$10,000",
-    Status: "Active"
-  }, {
-    CampaignId: "campaign2",
-    CampaignName: "Campaign Two",
-    CampaignOwner: "Owner Two",
-    CampaignType: "Type Two",
-    EstimatedBudget: "$20,000",
-    Status: "Paused"
-  }]);
+  const [campaigns, setCampaigns] = useState([]);
 
   useEffect(() => {
-    fetch("https://leafycrm-backend-sa-ncr.sa-demo.staging.corp.mongodb.com/api/v1/leafycrm/accounts", {
+    if (currentPage === "Accounts") {
+      fetch("http://ec2-3-6-116-209.ap-south-1.compute.amazonaws.com:8080/api/v1/leafycrm/accounts", {
+        mode: 'cors',
+        headers: {
+          'Access-Control-Allow-Origin': '*'
+        }
+      })
+        .then(response => response.json())
+        .then(data => {
+          console.log(data);
+          setAccounts(data.accounts);
+          setPerformanceAndOutput(data.execution_time);
+          setErrOut("");
+          setQueries(data.query);
+          delete data.query;
+          delete data.execution_time;
+          setPayload(data);
+        })
+        .catch(error => setErrOut("Error fetching accounts:" + error));
+    }
+    if (currentPage === "Campaigns") {
+      fetch("http://ec2-3-6-116-209.ap-south-1.compute.amazonaws.com:8080/api/v1/leafycrm/campaigns", {
       mode: 'cors',
       headers: {
         'Access-Control-Allow-Origin': '*'
       }
-    })
+      })
       .then(response => response.json())
       .then(data => {
         console.log(data);
-        setAccounts(data.accounts);
+        setCampaigns(data.campaigns);
         setPerformanceAndOutput(data.execution_time);
         setErrOut("");
         setQueries(data.query);
@@ -128,8 +135,12 @@ export default function Home() {
         delete data.execution_time;
         setPayload(data);
       })
-      .catch(error => setErrOut("Error fetching accounts:" + error));
-  }, []);
+      .catch(error => setErrOut("Error fetching campaigns:" + error));
+    }
+
+  }, [currentPage]);
+
+
 
   const [currentCampaign, setCurrentCampaign] = useState("");
   const [currentInteraction, setCurrentInteraction] = useState("");
@@ -676,55 +687,53 @@ export default function Home() {
                     +
                   </Button>
                   <div style={{ overflowY: "auto", height: "calc(75vh - 127px)", marginBottom: 20, marginTop: -50 }}>
-                    <table style={{ width: "100%", marginTop: 10, fontSize: 14, borderCollapse: "collapse", color: "#fff", backgroundColor: "#001E2B" }}>
-                      <thead>
-                        <tr>
-                          <th style={{ textAlign: "left", padding: "8px", borderBottom: "1px solid #001E2B" }}>Campaign Id</th>
-                          <th style={{ textAlign: "left", padding: "8px", borderBottom: "1px solid #001E2B" }}>Campaign Name</th>
-                          <th style={{ textAlign: "left", padding: "8px", borderBottom: "1px solid #001E2B" }}>Campaign Owner</th>
-                          <th style={{ textAlign: "left", padding: "8px", borderBottom: "1px solid #001E2B" }}>Campaign Type</th>
-                          <th style={{ textAlign: "left", padding: "8px", borderBottom: "1px solid #001E2B" }}>Estimated Budget</th>
-                          <th style={{ textAlign: "left", padding: "8px", borderBottom: "1px solid #001E2B" }}>Status</th>
-                        </tr>
-                      </thead>
-                      <tbody>
-                        {campaigns.map((campaign, index) => (
-                          <tr
-                            key={campaign.CampaignId}
-                            onClick={() => {
-                              setCurrentCampaign(campaign.CampaignId);
-                              setCurrentPage("CampaignDetails");
-                            }}
-                            style={{
-                              backgroundColor: index % 2 === 0 ? "#001821" : "#002636",
-                              cursor: "pointer"
-                            }}
-                            onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = "#004057")}
-                            onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = index % 2 === 0 ? "#001821" : "#002636")}
-                          >
-                            <td style={{ padding: "8px", borderBottom: "1px solid #001E2B" }}>{campaign.CampaignId}</td>
-                            <td style={{ padding: "8px", borderBottom: "1px solid #001E2B" }}>{campaign.CampaignName}</td>
-                            <td style={{ padding: "8px", borderBottom: "1px solid #001E2B" }}>{campaign.CampaignOwner}</td>
-                            <td style={{ padding: "8px", borderBottom: "1px solid #001E2B" }}>{campaign.CampaignType}</td>
-                            <td style={{ padding: "8px", borderBottom: "1px solid #001E2B" }}>{campaign.EstimatedBudget}</td>
-                            <td style={{ padding: "8px", borderBottom: "1px solid #001E2B" }}>
-                              <span style={{
-                                display: "inline-block",
-                                width: 10,
-                                height: 10,
-                                borderRadius: "50%",
-                                backgroundColor: campaign.Status === "Active" ? "green" :
-                                  campaign.Status === "Paused" ? "orange" :
-                                    campaign.Status === "Done" ? "blue" :
-                                      campaign.Status === "Draft" ? "gray" : "transparent",
-                                marginRight: 8
-                              }}></span>
-                              {campaign.Status}
-                            </td>
-                          </tr>
-                        ))}
-                      </tbody>
-                    </table>
+    <table style={{ width: "100%", marginTop: 10, fontSize: 14, borderCollapse: "collapse", color: "#fff", backgroundColor: "#001E2B" }}>
+      <thead>
+        <tr>
+          <th style={{ textAlign: "left", padding: "8px", borderBottom: "1px solid #001E2B" }}>Campaign Id</th>
+          <th style={{ textAlign: "left", padding: "8px", borderBottom: "1px solid #001E2B" }}>Campaign Name</th>
+          <th style={{ textAlign: "left", padding: "8px", borderBottom: "1px solid #001E2B" }}>Industry</th>
+          <th style={{ textAlign: "left", padding: "8px", borderBottom: "1px solid #001E2B" }}>End Date</th>
+          <th style={{ textAlign: "left", padding: "8px", borderBottom: "1px solid #001E2B" }}>Status</th>
+        </tr>
+      </thead>
+      <tbody>
+        {campaigns.map((campaign, index) => (
+          <tr
+            key={campaign.campaignId}
+            onClick={() => {
+              setCurrentCampaign(campaign.campaignId);
+              setCurrentPage("CampaignDetails");
+            }}
+            style={{
+              backgroundColor: index % 2 === 0 ? "#001821" : "#002636",
+              cursor: "pointer"
+            }}
+            onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = "#004057")}
+            onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = index % 2 === 0 ? "#001821" : "#002636")}
+          >
+            <td style={{ padding: "8px", borderBottom: "1px solid #001E2B" }}>{campaign.campaignId}</td>
+            <td style={{ padding: "8px", borderBottom: "1px solid #001E2B" }}>{campaign.name}</td>
+            <td style={{ padding: "8px", borderBottom: "1px solid #001E2B" }}>{campaign.industry}</td>
+            <td style={{ padding: "8px", borderBottom: "1px solid #001E2B" }}>{new Date(campaign.endDate).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' })}</td>
+            <td style={{ padding: "8px", borderBottom: "1px solid #001E2B" }}>
+              <span style={{
+                display: "inline-block",
+                width: 10,
+                height: 10,
+                borderRadius: "50%",
+                backgroundColor: campaign.status === "Active" ? "green" :
+                  campaign.status === "Completed" ? "blue" :
+                    campaign.status === "Paused" ? "orange" :
+                      campaign.status === "Draft" ? "gray" : "transparent",
+                marginRight: 8
+              }}></span>
+              {campaign.status}
+            </td>
+          </tr>
+        ))}
+      </tbody>
+    </table>
                   </div>
                 </div>;
 

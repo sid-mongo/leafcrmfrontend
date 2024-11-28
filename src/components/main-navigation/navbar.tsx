@@ -5,6 +5,7 @@ import React, { useState } from 'react';
 export function NavBar() {
   const [isCostShown, setIsCostShown] = useState(false);
   const [isFailoverShown, setIsFailoverShown] = useState(false);
+  const [isMigrationShown, setIsMigrationShown] = useState(false);
 
   return (
     <div>
@@ -37,9 +38,10 @@ export function NavBar() {
             onClick={() => {
               setIsCostShown(true);
               setIsFailoverShown(false);
+              setIsMigrationShown(false);
             }}
           >
-            Cost Comparison
+            Cost
           </Button>
           <Button
             style={{
@@ -51,22 +53,62 @@ export function NavBar() {
             onClick={() => {
               setIsCostShown(false);
               setIsFailoverShown(true);
+              setIsMigrationShown(false);
             }}
           >
             Failover Simulation
           </Button>
+        <Button
+          style={{
+            marginLeft: 5,
+            background: "#0090c9",
+            color: "black",
+            fontWeight: "bold"
+          }}
+          onClick={() => {
+            setIsCostShown(false);
+            setIsFailoverShown(false);
+            setIsMigrationShown(true);
+          }}
+        >
+          Migration
+        </Button>
         </div>
       </div>
-      {isCostShown && <div style={{ position: "absolute", zIndex: 99999, top: 57, bottom: 10, background: "#001E2B", display: "flex", left: 10, right: 10 }} >
+      {isCostShown && <>
+      <div style={{ textAlign: "right", marginRight: 10, marginTop: 5, marginBottom: 5 }}> 
+        <Button
+          style={{
+        marginLeft: 5,
+        background: "#0090c9",
+        color: "black",
+        fontWeight: "bold"
+          }}
+          onClick={() => {
+        window.open('http://ec2-43-204-218-17.ap-south-1.compute.amazonaws.com/', '_blank');
+          }}
+        >
+          Calculator
+        </Button>
+      </div>
+     
+      <div style={{ position: "absolute", zIndex: 99999, top: 113, bottom: 10, background: "#001E2B", display: "flex", left: 10, right: 10 }} >
         <div style={{ flex: 1 }}></div>
         <div style={{ overflow: "hidden", height: "100%", width: 1352 }} >
           <iframe style={{ marginTop: -23, marginLeft: -48, height: "calc(100% + 23px)", width: 1420 }} src="./TCO.html" />
         </div>
         <div style={{ flex: 1 }}></div>
-      </div>}
+      </div>
+      </>
+      }
       {isFailoverShown && <div style={{ position: "absolute", zIndex: 99999, top: 57, bottom: 10, background: "#001E2B", display: "flex", left: 10, right: 10 }} >
         <div style={{ flex: 1 }}></div>
         <video src="./ha.mov" autoPlay />
+        <div style={{ flex: 1 }}></div>
+      </div>}
+      {isMigrationShown && <div style={{ position: "absolute", zIndex: 99999, top: 57, bottom: 10, background: "#001E2B", display: "flex", left: 10, right: 10 }} >
+        <div style={{ flex: 1 }}></div>
+        <video src="./rm.mov" autoPlay />
         <div style={{ flex: 1 }}></div>
       </div>}
     </div>
