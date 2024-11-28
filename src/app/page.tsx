@@ -104,6 +104,9 @@ export default function Home() {
 
   const [searchTerm, setSearchTerm] = useState("");
 
+  const [pgCurrentAccount, setPgCurrentAccount] = useState("");
+  const [pgCurrentAccountObj, setPgCurrentAccountObj] = useState(newAccount);
+
   useEffect(() => {
     if (currentPage === "Accounts") {
       fetch("http://ec2-3-6-116-209.ap-south-1.compute.amazonaws.com:8080/api/v1/leafycrm/accounts", {
@@ -144,6 +147,26 @@ export default function Home() {
         setPayload(data);
       })
       .catch(error => setErrOut("Error fetching campaigns:" + error));
+    }
+    if (currentPage === "AccountDetails" && currentAccount !== "new") {
+      fetch(`http://ec2-3-6-116-209.ap-south-1.compute.amazonaws.com:8080/api/v1/leafycrm/accounts/${currentAccount}`, {
+      mode: 'cors',
+      headers: {
+        'Access-Control-Allow-Origin': '*'
+      }
+      })
+      .then(response => response.json())
+      .then(data => {
+        
+        setCurrentAccountObj(data.accounts[0]);
+        setPerformanceAndOutput(data.execution_time);
+        setErrOut("");
+        setQueries(data.query);
+        delete data.query;
+        delete data.execution_time;
+        setPayload(data);
+      })
+      .catch(error => setErrOut("Error fetching account details:" + error));
     }
 
   }, [currentPage]);
@@ -188,6 +211,27 @@ export default function Home() {
         setPgPayload(data);
       })
       .catch(error => setPgErrOut("Error fetching PostgreSQL campaigns:" + error));
+    }
+    if (currentPage === "AccountDetails" && pgCurrentAccount !== "new") {
+      console.log("pgCurrentAccount", pgCurrentAccount);
+      fetch(`http://ec2-3-109-207-23.ap-south-1.compute.amazonaws.com:5000/api/v1/leafycrm/account/2620`, {
+      mode: 'cors',
+      headers: {
+      'Access-Control-Allow-Origin': '*'
+      }
+      })
+      .then(response => response.json())
+      .then(data => {
+        console.log(data);
+      setPgCurrentAccountObj(data.account_details[0]);
+      setPgPerformanceAndOutput(data.execution_time);
+      setPgErrOut("");
+      setPgQueries(data.query);
+      delete data.query;
+      delete data.execution_time;
+      setPgPayload(data);
+      })
+      .catch(error => setPgErrOut("Error fetching PostgreSQL account details:" + error));
     }
 
   }, [currentPage]);
@@ -302,7 +346,7 @@ export default function Home() {
                   >
                     +
                   </Button>
-                  <div style={{ overflowY: "auto", height: "calc(75vh - 127px)", marginBottom: 20, marginTop: -50 }}>
+                  <div style={{ overflowY: "auto", height: "calc(60vh - 127px)", marginBottom: 20, marginTop: -50 }}>
                     <table style={{ width: "100%", marginTop: 10, fontSize: 14, borderCollapse: "collapse", color: "#fff", backgroundColor: "#001E2B" }}>
                       <thead>
                         <tr>
@@ -414,7 +458,7 @@ export default function Home() {
 
                 return (
                   <>
-                  <div style={{ overflowY: "auto", height: "calc(75vh - 127px)", marginBottom: 20 }}>
+                  <div style={{ overflowY: "auto", height: "calc(60vh - 127px)", marginBottom: 20 }}>
                     <table style={{ width: "100%", marginTop: 10, fontSize: 14, borderCollapse: "collapse", color: "#fff", backgroundColor: "#001E2B" }}>
                       <thead>
                         <tr>
@@ -663,7 +707,7 @@ export default function Home() {
                               delete newCurrentAccountObj._id;
 
                               if (currentAccount === "new") {
-                                fetch("http://localhost:5001/api/v1/leafycrm/accounts", {
+                                fetch("http://ec2-3-6-116-209.ap-south-1.compute.amazonaws.com:8080/api/v1/leafycrm/accounts", {
                                   method: "POST",
                                   headers: {
                                     "Content-Type": "application/json"
@@ -673,7 +717,7 @@ export default function Home() {
                                   .then(response => response.json())
                                   .then(data => {
                                     setAccounts([...accounts, currentAccountObj]);
-                                    setCurrentPage("Accounts");
+                                    // setCurrentPage("Accounts");
                                     setPerformanceAndOutput(data.execution_time);
                                     setErrOut("");
                                     setQueries(data.query);
@@ -682,10 +726,45 @@ export default function Home() {
                                     setPayload(data);
                                   })
                                   .catch(error => setErrOut("Error creating account: \n" + error));
+
+                                  fetch("http://ec2-3-109-207-23.ap-south-1.compute.amazonaws.com:5000/api/v1/leafycrm/accounts", {
+                                    method: "POST",
+                                    headers: {
+                                      "Content-Type": "application/json"
+                                    }
+                                  })
+                                    .then(response => response.json())
+                                    .then(data => {
+                                        setPgAccounts([...pgAccounts, pgCurrentAccountObj]);
+                                        // setCurrentPage("Accounts");
+                                        setPgPerformanceAndOutput(data.execution_time);
+                                        setPgErrOut("");
+                                        setPgQueries(data.query);
+                                        delete data.query;
+                                        delete data.execution_time;
+                                        setPgPayload(data);
+                                    })
+                                    .catch(error => setErrOut("Error creating account: \n" + error));
                               }
                             }}>Save</Button>
                             {currentAccount === "new" && <Button style={{ marginLeft: 10 }} onClick={() => {
                               setCurrentAccountObj({
+                                _id: "new",
+                                name: "",
+                                industry: "Aviation",
+                                revenue: Math.floor(Math.random() * (100000000 - 1000 + 1)) + 1000,
+                                spent: Math.floor(Math.random() * (1000000 - 1000 + 1)) + 1000,
+                                address: {
+                                  streetAddress: "123 Main St",
+                                  city: "New York",
+                                  postalCode: "10001",
+                                  country: "USA"
+                                },
+                                contacts: [
+                                  { name: "John Doe", designation: "CEO", email: "blah@blahbloo.com", campaignInteractions: [{ interactionType: "email", campaignId: 1099 }], lastActivity: new Date() }
+                                ]
+                              });
+                              setPgCurrentAccountObj({
                                 _id: "new",
                                 name: "",
                                 industry: "Aviation",
@@ -721,7 +800,7 @@ export default function Home() {
                   >
                     +
                   </Button>
-                  <div style={{ overflowY: "auto", height: "calc(75vh - 127px)", marginBottom: 20, marginTop: -50 }}>
+                  <div style={{ overflowY: "auto", height: "calc(60vh - 127px)", marginBottom: 20, marginTop: -50 }}>
     <table style={{ width: "100%", marginTop: 10, fontSize: 14, borderCollapse: "collapse", color: "#fff", backgroundColor: "#001E2B" }}>
       <thead>
         <tr>
@@ -776,7 +855,7 @@ export default function Home() {
                 let campaign = campaigns.find(camp => camp.CampaignId === currentCampaign);
 
                 if (!campaign && currentCampaign !== "new") {
-                  return <div style={{ overflowY: "auto", height: "calc(75vh - 127px)", marginBottom: 20, marginTop: -50 }}>Campaign not found</div>;
+                  return <div style={{ overflowY: "auto", height: "calc(60vh - 127px)", marginBottom: 20, marginTop: -50 }}>Campaign not found</div>;
                 } else if (!campaign) {
                   campaign = {
                     CampaignId: "new",
@@ -802,7 +881,7 @@ export default function Home() {
                 };
 
                 return (
-                  <div style={{ overflowY: "auto", height: "calc(75vh - 127px)", marginBottom: 20 }}>
+                  <div style={{ overflowY: "auto", height: "calc(60vh - 127px)", marginBottom: 20 }}>
                     <table style={{ width: "100%", marginTop: 10, fontSize: 14, borderCollapse: "collapse", color: "#fff", backgroundColor: "#001E2B" }}>
                       <thead>
                         <tr>
@@ -870,12 +949,12 @@ export default function Home() {
               }
 
               case "Interactions":
-                return <div style={{ overflowY: "auto", height: "calc(75vh - 127px)", marginBottom: 20 }}>
+                return <div style={{ overflowY: "auto", height: "calc(60vh - 127px)", marginBottom: 20 }}>
                   Interactions content
                 </div>;
               /*
             case "Opportunities":
-              return <div style={{ overflowY: "auto", height: "calc(75vh - 127px)", marginBottom: 20 }}>
+              return <div style={{ overflowY: "auto", height: "calc(60vh - 127px)", marginBottom: 20 }}>
                 Opportunities content
               </div>;
               */
@@ -890,7 +969,7 @@ export default function Home() {
                   >
                     +
                   </Button>
-                  <div style={{ overflowY: "auto", height: "calc(75vh - 127px)", marginBottom: 20, marginTop: -50 }}>
+                  <div style={{ overflowY: "auto", height: "calc(60vh - 127px)", marginBottom: 20, marginTop: -50 }}>
                     <table style={{ width: "100%", marginTop: 10, fontSize: 14, borderCollapse: "collapse", color: "#fff", backgroundColor: "#001E2B" }}>
                       <thead>
                         <tr>
@@ -909,7 +988,7 @@ export default function Home() {
             }
           })()}
         </div>
-        <div style={{ height: "25vh", display: "flex" }}>
+        <div style={{ height: "40vh", display: "flex" }}>
           <div style={{ flex: 1, padding: 10, background: "#00131c", marginRight: 3, overflow: "scroll" }}><pre style={{ fontSize: 12, color: "#ccc", textWrap: "wrap" }}>{queries}</pre></div>
           {
             !errOut ?
@@ -1001,7 +1080,7 @@ export default function Home() {
           >
             +
           </Button>
-          <div style={{ overflowY: "auto", height: "calc(75vh - 127px)", marginBottom: 20, marginTop: -50 }}>
+          <div style={{ overflowY: "auto", height: "calc(60vh - 127px)", marginBottom: 20, marginTop: -50 }}>
             <table style={{ width: "100%", marginTop: 10, fontSize: 14, borderCollapse: "collapse", color: "#fff", backgroundColor: "#001E2B" }}>
               <thead>
             <tr>
@@ -1050,7 +1129,7 @@ export default function Home() {
           >
             +
           </Button>
-          <div style={{ overflowY: "auto", height: "calc(75vh - 127px)", marginBottom: 20, marginTop: -50 }}>
+          <div style={{ overflowY: "auto", height: "calc(60vh - 127px)", marginBottom: 20, marginTop: -50 }}>
             <table style={{ width: "100%", marginTop: 10, fontSize: 14, borderCollapse: "collapse", color: "#fff", backgroundColor: "#001E2B" }}>
               <thead>
             <tr>
@@ -1100,12 +1179,377 @@ export default function Home() {
             </table>
           </div>
             </div>;
+          case "AccountDetails": {
+            const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+              const { name, value } = e.target;
+              const newCurrentAccountObj = JSON.parse(JSON.stringify(pgCurrentAccountObj));
+
+              switch (name) {
+                case "AccountName":
+                  newCurrentAccountObj.name = value;
+                  break;
+                case "address_street":
+                  newCurrentAccountObj.address.streetAddress = value;
+                  break;
+                case "Industry":
+                  newCurrentAccountObj.industry = value;
+                  break;
+                case "address_city":
+                  newCurrentAccountObj.address.city = value;
+                  break;
+                case "Revenue":
+                  if (!isNaN(parseFloat(value))) {
+                    newCurrentAccountObj.revenue = parseFloat(value);
+                  }
+                  break;
+                case "address_postal":
+                  newCurrentAccountObj.address.postalCode = value;
+                  break;
+                case "Spent":
+                  if (!isNaN(parseFloat(value))) {
+                    newCurrentAccountObj.spent = parseFloat(value);
+                  }
+                  break;
+                case "address_country":
+                  newCurrentAccountObj.address.country = value;
+                  break;
+                case "OpportunityName":
+                  newCurrentAccountObj.opportunity.name = value;
+                  break;
+                case "Description":
+                  newCurrentAccountObj.opportunity.description = value;
+                  break;
+                case "EstimatedValue":
+                  if (!isNaN(parseFloat(value))) {
+                    newCurrentAccountObj.opportunity.estimatedValue = parseFloat(value);
+                  }
+                  break;
+                case "Owner":
+                  newCurrentAccountObj.opportunity.owner = value;
+                  break;
+                default:
+                  const [key, index] = name.split(".");
+                  switch (key) {
+                    case "ContactName":
+                      newCurrentAccountObj.contacts[index].name = value;
+                      break;
+                    case "Designation":
+                      newCurrentAccountObj.contacts[index].designation = value;
+                      break;
+                    case "email":
+                      newCurrentAccountObj.contacts[index].email = value;
+                      break;
+                    default:
+                      break;
+                  }
+              }
+
+              setPgCurrentAccountObj(newCurrentAccountObj);
+            };
+
+            return (
+              <>
+              <div style={{ overflowY: "auto", height: "calc(60vh - 127px)", marginBottom: 20 }}>
+                <table style={{ width: "100%", marginTop: 10, fontSize: 14, borderCollapse: "collapse", color: "#fff", backgroundColor: "#001E2B" }}>
+                  <thead>
+                    <tr>
+                      <th style={{ textAlign: "left", padding: "8px", borderBottom: "1px solid #001E2B" }}>Account Details</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr>
+                      <td style={{ padding: "8</div>px", borderBottom: "1px solid #001E2B" }}>Account Name:</td>
+                      <td style={{ padding: "8px", borderBottom: "1px solid #001E2B" }}>
+                        <input
+                          type="text"
+                          name="AccountName"
+                          placeholder="Enter Account Name"
+                          value={pgCurrentAccountObj.name}
+                          onChange={handleInputChange}
+                          style={{ marginLeft: 10, backgroundColor: "#333", color: "#fff", border: "1px solid #555", width: "80%" }}
+                        />
+                      </td>
+                      <td style={{ padding: "8px", borderBottom: "1px solid #001E2B" }}>Address:</td>
+                      <td style={{ padding: "8px", borderBottom: "1px solid #001E2B" }}>
+                        <input
+                          type="text"
+                          name="address_street"
+                          value={pgCurrentAccountObj.address.streetAddress}
+                          onChange={handleInputChange}
+                          style={{ marginLeft: 10, backgroundColor: "#333", color: "#fff", border: "1px solid #555", width: "80%" }}
+                        />
+                      </td>
+                    </tr>
+                    <tr>
+                      <td style={{ padding: "8px", borderBottom: "1px solid #001E2B" }}>Industry:</td>
+                      <td style={{ padding: "8px", borderBottom: "1px solid #001E2B" }}>
+                        <input
+                          type="text"
+                          name="Industry"
+                          value={pgCurrentAccountObj.industry}
+                          onChange={handleInputChange}
+                          style={{ marginLeft: 10, backgroundColor: "#333", color: "#fff", border: "1px solid #555", width: "80%" }}
+                        />
+                      </td>
+                      <td style={{ padding: "8px", borderBottom: "1px solid #001E2B" }}></td>
+                      <td style={{ padding: "8px", borderBottom: "1px solid #001E2B" }}>
+                        <input
+                          type="text"
+                          name="address_city"
+                          value={pgCurrentAccountObj.address.city}
+                          onChange={handleInputChange}
+                          style={{ marginLeft: 10, backgroundColor: "#333", color: "#fff", border: "1px solid #555", width: "80%" }}
+                        />
+                      </td>
+                    </tr>
+                    <tr>
+                      <td style={{ padding: "8px", borderBottom: "1px solid #001E2B" }}>Revenue:</td>
+                      <td style={{ padding: "8px", borderBottom: "1px solid #001E2B" }}>
+                        <input
+                          type="text"
+                          name="Revenue"
+                          value={typeof pgCurrentAccountObj.revenue === 'object' && pgCurrentAccountObj.revenue.$numberDecimal ? parseInt(pgCurrentAccountObj.revenue.$numberDecimal) : pgCurrentAccountObj.revenue}
+                          onChange={handleInputChange}
+                          style={{ marginLeft: 10, backgroundColor: "#333", color: "#fff", border: "1px solid #555", width: "80%" }}
+                        />
+                      </td>
+                      <td style={{ padding: "8px", borderBottom: "1px solid #001E2B" }}></td>
+                      <td style={{ padding: "8px", borderBottom: "1px solid #001E2B" }}>
+                        <input
+                          type="text"
+                          name="address_postal"
+                          value={pgCurrentAccountObj.address.postalCode}
+                          onChange={handleInputChange}
+                          style={{ marginLeft: 10, backgroundColor: "#333", color: "#fff", border: "1px solid #555", width: "80%" }}
+                        />
+                      </td>
+                    </tr>
+                    <tr>
+                      <td style={{ padding: "8px", borderBottom: "1px solid #001E2B" }}>Spent:</td>
+                      <td style={{ padding: "8px", borderBottom: "1px solid #001E2B" }}>
+                        <input
+                          type="text"
+                          name="Spent"
+                          value={pgCurrentAccountObj.spent && typeof pgCurrentAccountObj.spent === 'object' && pgCurrentAccountObj.spent.$numberDecimal ? parseInt(pgCurrentAccountObj.spent.$numberDecimal) : pgCurrentAccountObj.spent}
+                          onChange={handleInputChange}
+                          style={{ marginLeft: 10, backgroundColor: "#333", color: "#fff", border: "1px solid #555", width: "80%" }}
+                        />
+                      </td>
+                      <td style={{ padding: "8px", borderBottom: "1px solid #001E2B" }}></td>
+                      <td style={{ padding: "8px", borderBottom: "1px solid #001E2B" }}>
+                        <input
+                          type="text"
+                          name="address_country"
+                          value={pgCurrentAccountObj.address.country}
+                          onChange={handleInputChange}
+                          style={{ marginLeft: 10, backgroundColor: "#333", color: "#fff", border: "1px solid #555", width: "80%" }}
+                        />
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
+                <table style={{ width: "100%", marginTop: 10, fontSize: 14, borderCollapse: "collapse", color: "#fff", backgroundColor: "#001E2B" }}>
+                  <thead>
+                    <tr>
+                      <th style={{ textAlign: "left", padding: "8px", borderBottom: "1px solid #001E2B", width: "33%" }}>Contacts
+                        <Button style={{ marginLeft: 10, borderRadius: 40 }} onClick={() => {
+                          const newCurrentAccountObj = {
+                            ...pgCurrentAccountObj,
+                            contacts: [...pgCurrentAccountObj.contacts, { name: "", designation: "", email: "", campaignInteractions: [{ interactionType: "email", campaignId: 1099 }], lastActivity: new Date() }]
+                          };
+                          setPgCurrentAccountObj(newCurrentAccountObj);
+                        }}>+</Button>
+                      </th>
+                      <th style={{ textAlign: "left", padding: "8px", borderBottom: "1px solid #001E2B", width: "33%" }}></th>
+                      <th style={{ textAlign: "left", padding: "8px", borderBottom: "1px solid #001E2B", width: "33%" }}></th>
+                    </tr>
+                    <tr>
+                      <th style={{ width: "33%", textAlign: "left", padding: "8px" }}>Contact Name</th>
+                      <th style={{ width: "33%", textAlign: "left", padding: "8px" }}>Designation</th>
+                      <th style={{ width: "33%", textAlign: "left", padding: "8px" }}>Email</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {pgCurrentAccountObj.contacts.map((contact, index) => (
+                      <>
+                        <tr>
+                          <td style={{ padding: "8px", borderBottom: "1px solid #001E2B", width: "33%" }}>
+                            <input
+                              type="text"
+                              name={"ContactName." + index}
+                              placeholder="Enter Contact Name"
+                              value={contact.name}
+                              onChange={handleInputChange}
+                              style={{ backgroundColor: "#333", color: "#fff", border: "1px solid #555", width: "80%" }}
+                            />
+                          </td>
+                          <td style={{ padding: "8px", borderBottom: "1px solid #001E2B", width: "33%" }}>
+                            <input
+                              type="text"
+                              name={"Designation." + index}
+                              value={contact.designation}
+                              onChange={handleInputChange}
+                              style={{ backgroundColor: "#333", color: "#fff", border: "1px solid #555", width: "80%" }}
+                            />
+                          </td>
+                          <td style={{ padding: "8px", borderBottom: "1px solid #001E2B", width: "33%" }}>
+                            <input
+                              type="text"
+                              name={"email." + index}
+                              value={contact.email}
+                              onChange={handleInputChange}
+                              style={{ backgroundColor: "#333", color: "#fff", border: "1px solid #555", width: "80%" }}
+                            />
+                          </td>
+                        </tr>
+                      </>
+                    ))}
+                    {currentAccount === "new" &&
+                      <tr>
+                        <td style={{ padding: "8px", borderBottom: "1px solid #001E2B", width: "33%" }}>
+                          <Checkbox
+                            style={{ borderColor: "white", transform: "translateY(2px)" }}
+                            checked={createWithOpp} onCheckedChange={
+                              () => {
+                                if (!createWithOpp) {
+                                  setPgCurrentAccountObj({
+                                    ...pgCurrentAccountObj,
+                                    opportunity: {
+                                      name: "",
+                                      description: "",
+                                      estimatedValue: "",
+                                      owner: "",
+                                      opportunityId: Math.floor(Math.random() * 10000) + 1,
+                                      stage: "open"
+                                    }
+                                  });
+                                } else {
+                                  const newCurrentAccountObj = { ...pgCurrentAccountObj };
+                                  delete newCurrentAccountObj.opportunity;
+                                  setPgCurrentAccountObj(newCurrentAccountObj);
+                                }
+
+                                setCreateWithOpp(!createWithOpp);
+                              }
+                            }
+                          />&nbsp; Create with Opportunity
+                        </td>
+                      </tr>
+                    }
+                    {createWithOpp && pgCurrentAccountObj.opportunity && currentAccount === "new" &&
+                      <>
+                        <tr>
+                          <td style={{ padding: "8px", borderBottom: "1px solid #001E2B" }}>Opportunity Name:</td>
+                          <td style={{ padding: "8px", borderBottom: "1px solid #001E2B" }}>
+                            <input
+                              type="text"
+                              name="OpportunityName"
+                              placeholder="Enter Opportunity Name"
+                              value={pgCurrentAccountObj.opportunity.name}
+                              onChange={handleInputChange}
+                              style={{ marginLeft: 10, backgroundColor: "#333", color: "#fff", border: "1px solid #555", width: "80%" }}
+                            />
+                          </td>
+                        </tr>
+                        <tr>
+                          <td style={{ padding: "8px", borderBottom: "1px solid #001E2B" }}>Description:</td>
+                          <td style={{ padding: "8px", borderBottom: "1px solid #001E2B" }}>
+                            <input
+                              type="text"
+                              name="Description"
+                              placeholder="Enter Description"
+                              value={pgCurrentAccountObj.opportunity.description}
+                              onChange={handleInputChange}
+                              style={{ marginLeft: 10, backgroundColor: "#333", color: "#fff", border: "1px solid #555", width: "80%" }}
+                            />
+                          </td>
+                        </tr>
+                        <tr>
+                          <td style={{ padding: "8px", borderBottom: "1px solid #001E2B" }}>Estimated Value:</td>
+                          <td style={{ padding: "8px", borderBottom: "1px solid #001E2B" }}>
+                            <input
+                              type="text"
+                              name="EstimatedValue"
+                              placeholder="Enter Estimated Value"
+                              value={pgCurrentAccountObj.opportunity.estimatedValue}
+                              onChange={handleInputChange}
+                              style={{ marginLeft: 10, backgroundColor: "#333", color: "#fff", border: "1px solid #555", width: "80%" }}
+                            />
+                          </td>
+                        </tr>
+                        <tr>
+                          <td style={{ padding: "8px", borderBottom: "1px solid #001E2B" }}>Owner:</td>
+                          <td style={{ padding: "8px", borderBottom: "1px solid #001E2B" }}>
+                            <input
+                              type="text"
+                              name="Owner"
+                              placeholder="Enter Owner"
+                              value={pgCurrentAccountObj.opportunity.owner}
+                              onChange={handleInputChange}
+                              style={{ marginLeft: 10, backgroundColor: "#333", color: "#fff", border: "1px solid #555", width: "80%" }}
+                            />
+                          </td>
+                        </tr>
+                      </>}
+                    <tr>
+                      <td style={{ padding: "8px", borderBottom: "1px solid #001E2B", width: "33%" }}>
+                        <Button onClick={() => {
+                          const newCurrentAccountObj = { ...pgCurrentAccountObj };
+                          delete newCurrentAccountObj._id;
+
+                          if (currentAccount === "new") {
+                            fetch("http://ec2-3-109-207-23.ap-south-1.compute.amazonaws.com:5000/api/v1/leafycrm/accounts", {
+                              method: "POST",
+                              headers: {
+                                "Content-Type": "application/json"
+                              }
+                            })
+                              .then(response => response.json())
+                              .then(data => {
+                                setAccounts([...accounts, pgCurrentAccountObj]);
+                                // setCurrentPage("Accounts");
+                                setPerformanceAndOutput(data.execution_time);
+                                setErrOut("");
+                                setQueries(data.query);
+                                delete data.query;
+                                delete data.execution_time;
+                                setPayload(data);
+                              })
+                              .catch(error => setErrOut("Error creating account: \n" + error));
+                          }
+                        }}>Save</Button>
+                        {currentAccount === "new" && <Button style={{ marginLeft: 10 }} onClick={() => {
+                          setPgCurrentAccountObj({
+                            _id: "new",
+                            name: "",
+                            industry: "Aviation",
+                            revenue: Math.floor(Math.random() * (100000000 - 1000 + 1)) + 1000,
+                            spent: Math.floor(Math.random() * (1000000 - 1000 + 1)) + 1000,
+                            address: {
+                              streetAddress: "123 Main St",
+                              city: "New York",
+                              postalCode: "10001",
+                              country: "USA"
+                            },
+                            contacts: [
+                              { name: "John Doe", designation: "CEO", email: "blah@blahbloo.com", campaignInteractions: [{ interactionType: "email", campaignId: 1099 }], lastActivity: new Date() }
+                            ]
+                          });
+                        }}>Autofill</Button>}
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+              </>
+            );
+          }
           default:
             return null;
         }
           })()}
         </div>
-        <div style={{ height: "25vh", display: "flex" }}>
+        <div style={{ height: "40vh", display: "flex" }}>
           <div style={{ flex: 1, padding: 10, background: "#00131c", marginRight: 3, overflow: "scroll" }}><pre style={{ fontSize: 12, color: "#ccc", textWrap: "wrap" }}>{pgQueries}</pre></div>
           {
         !pgErrOut ?
