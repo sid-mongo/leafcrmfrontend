@@ -117,6 +117,7 @@ export default function Home() {
     })
       .then(response => response.json())
       .then(data => {
+        console.log(data);
         setAccounts(data.accounts);
         setPerformanceAndOutput(data.execution_time);
         setErrOut("");
