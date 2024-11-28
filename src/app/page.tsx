@@ -106,6 +106,7 @@ export default function Home() {
 
   const [pgCurrentAccount, setPgCurrentAccount] = useState("");
   const [pgCurrentAccountObj, setPgCurrentAccountObj] = useState(newAccount);
+  const [allAccounts, setAllAccounts] = useState<Account[]>([]);
 
   useEffect(() => {
     if (currentPage === "Accounts") {
@@ -265,7 +266,7 @@ export default function Home() {
                   const searchTerm = e.currentTarget.value.toLowerCase();
                   setAllAccounts(JSON.parse(JSON.stringify(accounts)));
                   // setAccounts(prevAccounts => prevAccounts.filter(account => account.name.toLowerCase().includes(searchTerm)));
-                  fetch(`http://localhost:8080/api/v1/leafycrm/search?search_term=${searchTerm}&search_entity=account`)
+                  fetch(`http://ec2-3-6-116-209.ap-south-1.compute.amazonaws.com:8080/api/v1/leafycrm/search?search_term=${searchTerm}&search_entity=account`)
                     .then(response => response.json())
                     .then(data => {
                       setAccounts(data.account);
