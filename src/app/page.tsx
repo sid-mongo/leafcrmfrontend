@@ -8,7 +8,7 @@ import { Select } from "@/components/ui/select";
 import { useState, useEffect, useRef } from "react";
 import { Check } from "lucide-react";
 import { Checkbox } from "@/components/ui/checkbox";
-
+// test
 export default function Home() {
 
   // Mirror Cursor start
@@ -54,7 +54,27 @@ export default function Home() {
   };
 
   const [currentPage, setCurrentPage] = useState("Accounts");
-  const [accounts, setAccounts] = useState([]);
+  
+  interface Account {
+    _id: string;
+    name: string;
+    industry: string;
+    revenue: number | { $numberDecimal: string };
+    spent: number | { $numberDecimal: string };
+    address: {
+      streetAddress: string;
+      city: string;
+      postalCode: string;
+      country: string;
+    };
+    contacts: Array<{
+      name: string;
+      designation: string;
+      email: string;
+    }>;
+  }
+
+  const [accounts, setAccounts] = useState<Account[]>([]);
   const [currentAccount, setCurrentAccount] = useState("");
   const [currentAccountObj, setCurrentAccountObj] = useState(newAccount);
   const [createWithOpp, setCreateWithOpp] = useState(false);
