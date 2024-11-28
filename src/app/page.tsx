@@ -77,13 +77,15 @@ export default function Home() {
       name: string;
       description: string;
       estimatedValue: number;
-      owner: string;  
+      owner: string;
       opportunityId: number;
       stage: string;
     };
   }
 
   const [accounts, setAccounts] = useState<Account[]>([]);
+  const [allAccounts, setAllAccounts] = useState<Account[]>([]);
+  const [searchTerm, setSearchTerm] = useState("");
   const [currentAccount, setCurrentAccount] = useState("");
   const [currentAccountObj, setCurrentAccountObj] = useState(newAccount);
   const [createWithOpp, setCreateWithOpp] = useState(false);
@@ -109,7 +111,7 @@ export default function Home() {
   }]);
 
   useEffect(() => {
-    fetch("https://leafycrm-backend-sa-ncr.sa-demo.staging.corp.mongodb.com/api/v1/leafycrm/accounts")
+    fetch("http://localhost:8080/api/v1/leafycrm/accounts")
       .then(response => response.json())
       .then(data => {
         setAccounts(data.accounts);
@@ -137,6 +139,52 @@ export default function Home() {
         <div style={{ display: "flex", borderColor: "#003a51 !important", borderBottom: 1, borderStyle: "solid" }}>
           <div style={{ flex: 1, paddingTop: 4 }}>
             <img style={{ height: 24, display: "inline", paddingLeft: 5 }} src="./assets/mongodb_logo.png" />
+          </div>
+          <div style={{ position: "relative" }}>
+            <input
+              type="text"
+              placeholder="Search..."
+              style={{ marginRight: 10, padding: 3, height: 30, width: 200, transform: "translateY(2px)", fontSize: 12, borderRadius: 3, border: "1px solid #555", backgroundColor: "#333", color: "#fff" }}
+              onChange={(e) => setSearchTerm(e.currentTarget.value)}
+              value={searchTerm}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter') {
+                  const searchTerm = e.currentTarget.value.toLowerCase();
+                  setAllAccounts(JSON.parse(JSON.stringify(accounts)));
+                  // setAccounts(prevAccounts => prevAccounts.filter(account => account.name.toLowerCase().includes(searchTerm)));
+                  fetch(`http://localhost:8080/api/v1/leafycrm/search?search_term=${searchTerm}&search_entity=account`)
+                    .then(response => response.json())
+                    .then(data => {
+                      setAccounts(data.account);
+                      setPerformanceAndOutput(data.execution_time);
+                      setErrOut("");
+                      setQueries(data.query);
+                      delete data.query;
+                      delete data.execution_time;
+                      setPayload(data);
+                    })
+                    .catch(error => setErrOut("Error fetching accounts:" + error));
+                }
+              }}
+            />
+            <button
+              style={{
+                position: "absolute",
+                right: 15,
+                top: "50%",
+                transform: "translateY(-50%)",
+                background: "transparent",
+                border: "none",
+                color: "#fff",
+                cursor: "pointer"
+              }}
+              onClick={() => {
+                setAccounts(JSON.parse(JSON.stringify(allAccounts)));
+                setSearchTerm("");
+              }}
+            >
+              ✕
+            </button>
           </div>
           <Button
             style={{
@@ -314,299 +362,299 @@ export default function Home() {
 
                 return (
                   <>
-                  <div style={{ overflowY: "auto", height: "calc(75vh - 127px)", marginBottom: 20 }}>
-                    <table style={{ width: "100%", marginTop: 10, fontSize: 14, borderCollapse: "collapse", color: "#fff", backgroundColor: "#001E2B" }}>
-                      <thead>
-                        <tr>
-                          <th style={{ textAlign: "left", padding: "8px", borderBottom: "1px solid #001E2B" }}>Account Details</th>
-                        </tr>
-                      </thead>
-                      <tbody>
-                        <tr>
-                          <td style={{ padding: "8</div>px", borderBottom: "1px solid #001E2B" }}>Account Name:</td>
-                          <td style={{ padding: "8px", borderBottom: "1px solid #001E2B" }}>
-                            <input
-                              type="text"
-                              name="AccountName"
-                              placeholder="Enter Account Name"
-                              value={currentAccountObj.name}
-                              onChange={handleInputChange}
-                              style={{ marginLeft: 10, backgroundColor: "#333", color: "#fff", border: "1px solid #555", width: "80%" }}
-                            />
-                          </td>
-                          <td style={{ padding: "8px", borderBottom: "1px solid #001E2B" }}>Address:</td>
-                          <td style={{ padding: "8px", borderBottom: "1px solid #001E2B" }}>
-                            <input
-                              type="text"
-                              name="address_street"
-                              value={currentAccountObj.address.streetAddress}
-                              onChange={handleInputChange}
-                              style={{ marginLeft: 10, backgroundColor: "#333", color: "#fff", border: "1px solid #555", width: "80%" }}
-                            />
-                          </td>
-                        </tr>
-                        <tr>
-                          <td style={{ padding: "8px", borderBottom: "1px solid #001E2B" }}>Industry:</td>
-                          <td style={{ padding: "8px", borderBottom: "1px solid #001E2B" }}>
-                            <input
-                              type="text"
-                              name="Industry"
-                              value={currentAccountObj.industry}
-                              onChange={handleInputChange}
-                              style={{ marginLeft: 10, backgroundColor: "#333", color: "#fff", border: "1px solid #555", width: "80%" }}
-                            />
-                          </td>
-                          <td style={{ padding: "8px", borderBottom: "1px solid #001E2B" }}></td>
-                          <td style={{ padding: "8px", borderBottom: "1px solid #001E2B" }}>
-                            <input
-                              type="text"
-                              name="address_city"
-                              value={currentAccountObj.address.city}
-                              onChange={handleInputChange}
-                              style={{ marginLeft: 10, backgroundColor: "#333", color: "#fff", border: "1px solid #555", width: "80%" }}
-                            />
-                          </td>
-                        </tr>
-                        <tr>
-                          <td style={{ padding: "8px", borderBottom: "1px solid #001E2B" }}>Revenue:</td>
-                          <td style={{ padding: "8px", borderBottom: "1px solid #001E2B" }}>
-                            <input
-                              type="text"
-                              name="Revenue"
-                              value={typeof currentAccountObj.revenue === 'object' && currentAccountObj.revenue.$numberDecimal ? parseInt(currentAccountObj.revenue.$numberDecimal) : currentAccountObj.revenue}
-                              onChange={handleInputChange}
-                              style={{ marginLeft: 10, backgroundColor: "#333", color: "#fff", border: "1px solid #555", width: "80%" }}
-                            />
-                          </td>
-                          <td style={{ padding: "8px", borderBottom: "1px solid #001E2B" }}></td>
-                          <td style={{ padding: "8px", borderBottom: "1px solid #001E2B" }}>
-                            <input
-                              type="text"
-                              name="address_postal"
-                              value={currentAccountObj.address.postalCode}
-                              onChange={handleInputChange}
-                              style={{ marginLeft: 10, backgroundColor: "#333", color: "#fff", border: "1px solid #555", width: "80%" }}
-                            />
-                          </td>
-                        </tr>
-                        <tr>
-                          <td style={{ padding: "8px", borderBottom: "1px solid #001E2B" }}>Spent:</td>
-                          <td style={{ padding: "8px", borderBottom: "1px solid #001E2B" }}>
-                            <input
-                              type="text"
-                              name="Spent"
-                              value={currentAccountObj.spent && typeof currentAccountObj.spent === 'object' && currentAccountObj.spent.$numberDecimal ? parseInt(currentAccountObj.spent.$numberDecimal) : currentAccountObj.spent}
-                              onChange={handleInputChange}
-                              style={{ marginLeft: 10, backgroundColor: "#333", color: "#fff", border: "1px solid #555", width: "80%" }}
-                            />
-                          </td>
-                          <td style={{ padding: "8px", borderBottom: "1px solid #001E2B" }}></td>
-                          <td style={{ padding: "8px", borderBottom: "1px solid #001E2B" }}>
-                            <input
-                              type="text"
-                              name="address_country"
-                              value={currentAccountObj.address.country}
-                              onChange={handleInputChange}
-                              style={{ marginLeft: 10, backgroundColor: "#333", color: "#fff", border: "1px solid #555", width: "80%" }}
-                            />
-                          </td>
-                        </tr>
-                      </tbody>
-                    </table>
-                    <table style={{ width: "100%", marginTop: 10, fontSize: 14, borderCollapse: "collapse", color: "#fff", backgroundColor: "#001E2B" }}>
-                      <thead>
-                        <tr>
-                          <th style={{ textAlign: "left", padding: "8px", borderBottom: "1px solid #001E2B", width: "33%" }}>Contacts
-                            <Button style={{ marginLeft: 10, borderRadius: 40 }} onClick={() => {
-                              const newCurrentAccountObj = {
-                                ...currentAccountObj,
-                                contacts: [...currentAccountObj.contacts, { name: "", designation: "", email: "", campaignInteractions: [{ interactionType: "email", campaignId: 1099 }], lastActivity: new Date() }]
-                              };
-                              setCurrentAccountObj(newCurrentAccountObj);
-                            }}>+</Button>
-                          </th>
-                          <th style={{ textAlign: "left", padding: "8px", borderBottom: "1px solid #001E2B", width: "33%" }}></th>
-                          <th style={{ textAlign: "left", padding: "8px", borderBottom: "1px solid #001E2B", width: "33%" }}></th>
-                        </tr>
-                        <tr>
-                          <th style={{ width: "33%", textAlign: "left", padding: "8px" }}>Contact Name</th>
-                          <th style={{ width: "33%", textAlign: "left", padding: "8px" }}>Designation</th>
-                          <th style={{ width: "33%", textAlign: "left", padding: "8px" }}>Email</th>
-                        </tr>
-                      </thead>
-                      <tbody>
-                        {currentAccountObj.contacts.map((contact, index) => (
-                          <>
-                            <tr>
-                              <td style={{ padding: "8px", borderBottom: "1px solid #001E2B", width: "33%" }}>
-                                <input
-                                  type="text"
-                                  name={"ContactName." + index}
-                                  placeholder="Enter Contact Name"
-                                  value={contact.name}
-                                  onChange={handleInputChange}
-                                  style={{ backgroundColor: "#333", color: "#fff", border: "1px solid #555", width: "80%" }}
-                                />
-                              </td>
-                              <td style={{ padding: "8px", borderBottom: "1px solid #001E2B", width: "33%" }}>
-                                <input
-                                  type="text"
-                                  name={"Designation." + index}
-                                  value={contact.designation}
-                                  onChange={handleInputChange}
-                                  style={{ backgroundColor: "#333", color: "#fff", border: "1px solid #555", width: "80%" }}
-                                />
-                              </td>
-                              <td style={{ padding: "8px", borderBottom: "1px solid #001E2B", width: "33%" }}>
-                                <input
-                                  type="text"
-                                  name={"email." + index}
-                                  value={contact.email}
-                                  onChange={handleInputChange}
-                                  style={{ backgroundColor: "#333", color: "#fff", border: "1px solid #555", width: "80%" }}
-                                />
-                              </td>
-                            </tr>
-                          </>
-                        ))}
-                        {currentAccount === "new" &&
+                    <div style={{ overflowY: "auto", height: "calc(75vh - 127px)", marginBottom: 20 }}>
+                      <table style={{ width: "100%", marginTop: 10, fontSize: 14, borderCollapse: "collapse", color: "#fff", backgroundColor: "#001E2B" }}>
+                        <thead>
                           <tr>
-                            <td style={{ padding: "8px", borderBottom: "1px solid #001E2B", width: "33%" }}>
-                              <Checkbox
-                                style={{ borderColor: "white", transform: "translateY(2px)" }}
-                                checked={createWithOpp} onCheckedChange={
-                                  () => {
-                                    if (!createWithOpp) {
-                                      setCurrentAccountObj({
-                                        ...currentAccountObj,
-                                        opportunity: {
-                                          name: "",
-                                          description: "",
-                                          estimatedValue: "",
-                                          owner: "",
-                                          opportunityId: Math.floor(Math.random() * 10000) + 1,
-                                          stage: "open"
-                                        }
-                                      });
-                                    } else {
-                                      const newCurrentAccountObj = { ...currentAccountObj };
-                                      delete newCurrentAccountObj.opportunity;
-                                      setCurrentAccountObj(newCurrentAccountObj);
-                                    }
-
-                                    setCreateWithOpp(!createWithOpp);
-                                  }
-                                }
-                              />&nbsp; Create with Opportunity
+                            <th style={{ textAlign: "left", padding: "8px", borderBottom: "1px solid #001E2B" }}>Account Details</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          <tr>
+                            <td style={{ padding: "8</div>px", borderBottom: "1px solid #001E2B" }}>Account Name:</td>
+                            <td style={{ padding: "8px", borderBottom: "1px solid #001E2B" }}>
+                              <input
+                                type="text"
+                                name="AccountName"
+                                placeholder="Enter Account Name"
+                                value={currentAccountObj.name}
+                                onChange={handleInputChange}
+                                style={{ marginLeft: 10, backgroundColor: "#333", color: "#fff", border: "1px solid #555", width: "80%" }}
+                              />
+                            </td>
+                            <td style={{ padding: "8px", borderBottom: "1px solid #001E2B" }}>Address:</td>
+                            <td style={{ padding: "8px", borderBottom: "1px solid #001E2B" }}>
+                              <input
+                                type="text"
+                                name="address_street"
+                                value={currentAccountObj.address.streetAddress}
+                                onChange={handleInputChange}
+                                style={{ marginLeft: 10, backgroundColor: "#333", color: "#fff", border: "1px solid #555", width: "80%" }}
+                              />
                             </td>
                           </tr>
-                        }
-                        {createWithOpp && currentAccountObj.opportunity && currentAccount === "new" &&
-                          <>
+                          <tr>
+                            <td style={{ padding: "8px", borderBottom: "1px solid #001E2B" }}>Industry:</td>
+                            <td style={{ padding: "8px", borderBottom: "1px solid #001E2B" }}>
+                              <input
+                                type="text"
+                                name="Industry"
+                                value={currentAccountObj.industry}
+                                onChange={handleInputChange}
+                                style={{ marginLeft: 10, backgroundColor: "#333", color: "#fff", border: "1px solid #555", width: "80%" }}
+                              />
+                            </td>
+                            <td style={{ padding: "8px", borderBottom: "1px solid #001E2B" }}></td>
+                            <td style={{ padding: "8px", borderBottom: "1px solid #001E2B" }}>
+                              <input
+                                type="text"
+                                name="address_city"
+                                value={currentAccountObj.address.city}
+                                onChange={handleInputChange}
+                                style={{ marginLeft: 10, backgroundColor: "#333", color: "#fff", border: "1px solid #555", width: "80%" }}
+                              />
+                            </td>
+                          </tr>
+                          <tr>
+                            <td style={{ padding: "8px", borderBottom: "1px solid #001E2B" }}>Revenue:</td>
+                            <td style={{ padding: "8px", borderBottom: "1px solid #001E2B" }}>
+                              <input
+                                type="text"
+                                name="Revenue"
+                                value={typeof currentAccountObj.revenue === 'object' && currentAccountObj.revenue.$numberDecimal ? parseInt(currentAccountObj.revenue.$numberDecimal) : currentAccountObj.revenue}
+                                onChange={handleInputChange}
+                                style={{ marginLeft: 10, backgroundColor: "#333", color: "#fff", border: "1px solid #555", width: "80%" }}
+                              />
+                            </td>
+                            <td style={{ padding: "8px", borderBottom: "1px solid #001E2B" }}></td>
+                            <td style={{ padding: "8px", borderBottom: "1px solid #001E2B" }}>
+                              <input
+                                type="text"
+                                name="address_postal"
+                                value={currentAccountObj.address.postalCode}
+                                onChange={handleInputChange}
+                                style={{ marginLeft: 10, backgroundColor: "#333", color: "#fff", border: "1px solid #555", width: "80%" }}
+                              />
+                            </td>
+                          </tr>
+                          <tr>
+                            <td style={{ padding: "8px", borderBottom: "1px solid #001E2B" }}>Spent:</td>
+                            <td style={{ padding: "8px", borderBottom: "1px solid #001E2B" }}>
+                              <input
+                                type="text"
+                                name="Spent"
+                                value={currentAccountObj.spent && typeof currentAccountObj.spent === 'object' && currentAccountObj.spent.$numberDecimal ? parseInt(currentAccountObj.spent.$numberDecimal) : currentAccountObj.spent}
+                                onChange={handleInputChange}
+                                style={{ marginLeft: 10, backgroundColor: "#333", color: "#fff", border: "1px solid #555", width: "80%" }}
+                              />
+                            </td>
+                            <td style={{ padding: "8px", borderBottom: "1px solid #001E2B" }}></td>
+                            <td style={{ padding: "8px", borderBottom: "1px solid #001E2B" }}>
+                              <input
+                                type="text"
+                                name="address_country"
+                                value={currentAccountObj.address.country}
+                                onChange={handleInputChange}
+                                style={{ marginLeft: 10, backgroundColor: "#333", color: "#fff", border: "1px solid #555", width: "80%" }}
+                              />
+                            </td>
+                          </tr>
+                        </tbody>
+                      </table>
+                      <table style={{ width: "100%", marginTop: 10, fontSize: 14, borderCollapse: "collapse", color: "#fff", backgroundColor: "#001E2B" }}>
+                        <thead>
+                          <tr>
+                            <th style={{ textAlign: "left", padding: "8px", borderBottom: "1px solid #001E2B", width: "33%" }}>Contacts
+                              <Button style={{ marginLeft: 10, borderRadius: 40 }} onClick={() => {
+                                const newCurrentAccountObj = {
+                                  ...currentAccountObj,
+                                  contacts: [...currentAccountObj.contacts, { name: "", designation: "", email: "", campaignInteractions: [{ interactionType: "email", campaignId: 1099 }], lastActivity: new Date() }]
+                                };
+                                setCurrentAccountObj(newCurrentAccountObj);
+                              }}>+</Button>
+                            </th>
+                            <th style={{ textAlign: "left", padding: "8px", borderBottom: "1px solid #001E2B", width: "33%" }}></th>
+                            <th style={{ textAlign: "left", padding: "8px", borderBottom: "1px solid #001E2B", width: "33%" }}></th>
+                          </tr>
+                          <tr>
+                            <th style={{ width: "33%", textAlign: "left", padding: "8px" }}>Contact Name</th>
+                            <th style={{ width: "33%", textAlign: "left", padding: "8px" }}>Designation</th>
+                            <th style={{ width: "33%", textAlign: "left", padding: "8px" }}>Email</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          {currentAccountObj.contacts.map((contact, index) => (
+                            <>
+                              <tr>
+                                <td style={{ padding: "8px", borderBottom: "1px solid #001E2B", width: "33%" }}>
+                                  <input
+                                    type="text"
+                                    name={"ContactName." + index}
+                                    placeholder="Enter Contact Name"
+                                    value={contact.name}
+                                    onChange={handleInputChange}
+                                    style={{ backgroundColor: "#333", color: "#fff", border: "1px solid #555", width: "80%" }}
+                                  />
+                                </td>
+                                <td style={{ padding: "8px", borderBottom: "1px solid #001E2B", width: "33%" }}>
+                                  <input
+                                    type="text"
+                                    name={"Designation." + index}
+                                    value={contact.designation}
+                                    onChange={handleInputChange}
+                                    style={{ backgroundColor: "#333", color: "#fff", border: "1px solid #555", width: "80%" }}
+                                  />
+                                </td>
+                                <td style={{ padding: "8px", borderBottom: "1px solid #001E2B", width: "33%" }}>
+                                  <input
+                                    type="text"
+                                    name={"email." + index}
+                                    value={contact.email}
+                                    onChange={handleInputChange}
+                                    style={{ backgroundColor: "#333", color: "#fff", border: "1px solid #555", width: "80%" }}
+                                  />
+                                </td>
+                              </tr>
+                            </>
+                          ))}
+                          {currentAccount === "new" &&
                             <tr>
-                              <td style={{ padding: "8px", borderBottom: "1px solid #001E2B" }}>Opportunity Name:</td>
-                              <td style={{ padding: "8px", borderBottom: "1px solid #001E2B" }}>
-                                <input
-                                  type="text"
-                                  name="OpportunityName"
-                                  placeholder="Enter Opportunity Name"
-                                  value={currentAccountObj.opportunity.name}
-                                  onChange={handleInputChange}
-                                  style={{ marginLeft: 10, backgroundColor: "#333", color: "#fff", border: "1px solid #555", width: "80%" }}
-                                />
-                              </td>
-                            </tr>
-                            <tr>
-                              <td style={{ padding: "8px", borderBottom: "1px solid #001E2B" }}>Description:</td>
-                              <td style={{ padding: "8px", borderBottom: "1px solid #001E2B" }}>
-                                <input
-                                  type="text"
-                                  name="Description"
-                                  placeholder="Enter Description"
-                                  value={currentAccountObj.opportunity.description}
-                                  onChange={handleInputChange}
-                                  style={{ marginLeft: 10, backgroundColor: "#333", color: "#fff", border: "1px solid #555", width: "80%" }}
-                                />
-                              </td>
-                            </tr>
-                            <tr>
-                              <td style={{ padding: "8px", borderBottom: "1px solid #001E2B" }}>Estimated Value:</td>
-                              <td style={{ padding: "8px", borderBottom: "1px solid #001E2B" }}>
-                                <input
-                                  type="text"
-                                  name="EstimatedValue"
-                                  placeholder="Enter Estimated Value"
-                                  value={currentAccountObj.opportunity.estimatedValue}
-                                  onChange={handleInputChange}
-                                  style={{ marginLeft: 10, backgroundColor: "#333", color: "#fff", border: "1px solid #555", width: "80%" }}
-                                />
-                              </td>
-                            </tr>
-                            <tr>
-                              <td style={{ padding: "8px", borderBottom: "1px solid #001E2B" }}>Owner:</td>
-                              <td style={{ padding: "8px", borderBottom: "1px solid #001E2B" }}>
-                                <input
-                                  type="text"
-                                  name="Owner"
-                                  placeholder="Enter Owner"
-                                  value={currentAccountObj.opportunity.owner}
-                                  onChange={handleInputChange}
-                                  style={{ marginLeft: 10, backgroundColor: "#333", color: "#fff", border: "1px solid #555", width: "80%" }}
-                                />
-                              </td>
-                            </tr>
-                          </>}
-                        <tr>
-                          <td style={{ padding: "8px", borderBottom: "1px solid #001E2B", width: "33%" }}>
-                            <Button onClick={() => {
-                              const newCurrentAccountObj = { ...currentAccountObj };
-                              delete newCurrentAccountObj._id;
+                              <td style={{ padding: "8px", borderBottom: "1px solid #001E2B", width: "33%" }}>
+                                <Checkbox
+                                  style={{ borderColor: "white", transform: "translateY(2px)" }}
+                                  checked={createWithOpp} onCheckedChange={
+                                    () => {
+                                      if (!createWithOpp) {
+                                        setCurrentAccountObj({
+                                          ...currentAccountObj,
+                                          opportunity: {
+                                            name: "",
+                                            description: "",
+                                            estimatedValue: "",
+                                            owner: "",
+                                            opportunityId: Math.floor(Math.random() * 10000) + 1,
+                                            stage: "open"
+                                          }
+                                        });
+                                      } else {
+                                        const newCurrentAccountObj = { ...currentAccountObj };
+                                        delete newCurrentAccountObj.opportunity;
+                                        setCurrentAccountObj(newCurrentAccountObj);
+                                      }
 
-                              if (currentAccount === "new") {
-                                fetch("http://localhost:5001/api/v1/leafycrm/accounts", {
-                                  method: "POST",
-                                  headers: {
-                                    "Content-Type": "application/json"
-                                  },
-                                  body: JSON.stringify(newCurrentAccountObj)
-                                })
-                                  .then(response => response.json())
-                                  .then(data => {
-                                    setAccounts([...accounts, currentAccountObj]);
-                                    setCurrentPage("Accounts");
-                                    setPerformanceAndOutput(data.execution_time);
-                                    setErrOut("");
-                                    setQueries(data.query);
-                                    delete data.query;
-                                    delete data.execution_time;
-                                    setPayload(data);
+                                      setCreateWithOpp(!createWithOpp);
+                                    }
+                                  }
+                                />&nbsp; Create with Opportunity
+                              </td>
+                            </tr>
+                          }
+                          {createWithOpp && currentAccountObj.opportunity && currentAccount === "new" &&
+                            <>
+                              <tr>
+                                <td style={{ padding: "8px", borderBottom: "1px solid #001E2B" }}>Opportunity Name:</td>
+                                <td style={{ padding: "8px", borderBottom: "1px solid #001E2B" }}>
+                                  <input
+                                    type="text"
+                                    name="OpportunityName"
+                                    placeholder="Enter Opportunity Name"
+                                    value={currentAccountObj.opportunity.name}
+                                    onChange={handleInputChange}
+                                    style={{ marginLeft: 10, backgroundColor: "#333", color: "#fff", border: "1px solid #555", width: "80%" }}
+                                  />
+                                </td>
+                              </tr>
+                              <tr>
+                                <td style={{ padding: "8px", borderBottom: "1px solid #001E2B" }}>Description:</td>
+                                <td style={{ padding: "8px", borderBottom: "1px solid #001E2B" }}>
+                                  <input
+                                    type="text"
+                                    name="Description"
+                                    placeholder="Enter Description"
+                                    value={currentAccountObj.opportunity.description}
+                                    onChange={handleInputChange}
+                                    style={{ marginLeft: 10, backgroundColor: "#333", color: "#fff", border: "1px solid #555", width: "80%" }}
+                                  />
+                                </td>
+                              </tr>
+                              <tr>
+                                <td style={{ padding: "8px", borderBottom: "1px solid #001E2B" }}>Estimated Value:</td>
+                                <td style={{ padding: "8px", borderBottom: "1px solid #001E2B" }}>
+                                  <input
+                                    type="text"
+                                    name="EstimatedValue"
+                                    placeholder="Enter Estimated Value"
+                                    value={currentAccountObj.opportunity.estimatedValue}
+                                    onChange={handleInputChange}
+                                    style={{ marginLeft: 10, backgroundColor: "#333", color: "#fff", border: "1px solid #555", width: "80%" }}
+                                  />
+                                </td>
+                              </tr>
+                              <tr>
+                                <td style={{ padding: "8px", borderBottom: "1px solid #001E2B" }}>Owner:</td>
+                                <td style={{ padding: "8px", borderBottom: "1px solid #001E2B" }}>
+                                  <input
+                                    type="text"
+                                    name="Owner"
+                                    placeholder="Enter Owner"
+                                    value={currentAccountObj.opportunity.owner}
+                                    onChange={handleInputChange}
+                                    style={{ marginLeft: 10, backgroundColor: "#333", color: "#fff", border: "1px solid #555", width: "80%" }}
+                                  />
+                                </td>
+                              </tr>
+                            </>}
+                          <tr>
+                            <td style={{ padding: "8px", borderBottom: "1px solid #001E2B", width: "33%" }}>
+                              <Button onClick={() => {
+                                const newCurrentAccountObj = { ...currentAccountObj };
+                                delete newCurrentAccountObj._id;
+
+                                if (currentAccount === "new") {
+                                  fetch("http://localhost:8080/api/v1/leafycrm/accounts", {
+                                    method: "POST",
+                                    headers: {
+                                      "Content-Type": "application/json"
+                                    },
+                                    body: JSON.stringify(newCurrentAccountObj)
                                   })
-                                  .catch(error => setErrOut("Error creating account: \n" + error));
-                              }
-                            }}>Save</Button>
-                            {currentAccount === "new" && <Button style={{ marginLeft: 10 }} onClick={() => {
-                              setCurrentAccountObj({
-                                _id: "new",
-                                name: "",
-                                industry: "Aviation",
-                                revenue: Math.floor(Math.random() * (100000000 - 1000 + 1)) + 1000,
-                                spent: Math.floor(Math.random() * (1000000 - 1000 + 1)) + 1000,
-                                address: {
-                                  streetAddress: "123 Main St",
-                                  city: "New York",
-                                  postalCode: "10001",
-                                  country: "USA"
-                                },
-                                contacts: [
-                                  { name: "John Doe", designation: "CEO", email: "blah@blahbloo.com", campaignInteractions: [{ interactionType: "email", campaignId: 1099 }], lastActivity: new Date() }
-                                ]
-                              });
-                            }}>Autofill</Button>}
-                          </td>
-                        </tr>
-                      </tbody>
-                    </table>
-                  </div>
+                                    .then(response => response.json())
+                                    .then(data => {
+                                      setAccounts([...accounts, currentAccountObj]);
+                                      setCurrentPage("Accounts");
+                                      setPerformanceAndOutput(data.execution_time);
+                                      setErrOut("");
+                                      setQueries(data.query);
+                                      delete data.query;
+                                      delete data.execution_time;
+                                      setPayload(data);
+                                    })
+                                    .catch(error => setErrOut("Error creating account: \n" + error));
+                                }
+                              }}>Save</Button>
+                              {currentAccount === "new" && <Button style={{ marginLeft: 10 }} onClick={() => {
+                                setCurrentAccountObj({
+                                  _id: "new",
+                                  name: "",
+                                  industry: "Aviation",
+                                  revenue: Math.floor(Math.random() * (100000000 - 1000 + 1)) + 1000,
+                                  spent: Math.floor(Math.random() * (1000000 - 1000 + 1)) + 1000,
+                                  address: {
+                                    streetAddress: "123 Main St",
+                                    city: "New York",
+                                    postalCode: "10001",
+                                    country: "USA"
+                                  },
+                                  contacts: [
+                                    { name: "John Doe", designation: "CEO", email: "blah@blahbloo.com", campaignInteractions: [{ interactionType: "email", campaignId: 1099 }], lastActivity: new Date() }
+                                  ]
+                                });
+                              }}>Autofill</Button>}
+                            </td>
+                          </tr>
+                        </tbody>
+                      </table>
+                    </div>
                   </>
                 );
               }
@@ -837,7 +885,7 @@ export default function Home() {
         <div ref={postgresCursorRef} style={{ position: "absolute", width: 12, height: 20, backgroundImage: `url(${"./assets/mac-cursor.png"})`, backgroundSize: "contain", pointerEvents: "none", transform: "translate(-12px, -20px)" }} />
         <div style={{ display: "flex", borderColor: "#003a51 !important", borderBottom: 1, borderStyle: "solid" }}>
           <div style={{ flex: 1, paddingTop: 4 }}>
-          <img style={{ height: 24, display: "inline", paddingLeft: 5 }} src="./assets/postgre_logo.png" /><span><b>Postgre</b><b style={{ color: "#50b0f0" }}>SQL</b><b>&nbsp;&nbsp;&nbsp;&nbsp;▾</b></span>
+            <img style={{ height: 24, display: "inline", paddingLeft: 5 }} src="./assets/postgre_logo.png" /><span><b>Postgre</b><b style={{ color: "#50b0f0" }}>SQL</b><b>&nbsp;&nbsp;&nbsp;&nbsp;▾</b></span>
           </div>
           <Button
             style={{
@@ -1259,7 +1307,7 @@ export default function Home() {
                               delete newCurrentAccountObj._id;
 
                               if (currentAccount === "new") {
-                                fetch("http://localhost:5001/api/v1/leafycrm/accounts", {
+                                fetch("http://localhost:8080/api/v1/leafycrm/accounts", {
                                   method: "POST",
                                   headers: {
                                     "Content-Type": "application/json"
@@ -1524,5 +1572,5 @@ export default function Home() {
         </div>
       </div>
     </div>
-    </>;
+  </>;
 }
