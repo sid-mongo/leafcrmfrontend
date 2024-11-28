@@ -54,7 +54,7 @@ export default function Home() {
   };
 
   const [currentPage, setCurrentPage] = useState("Accounts");
-  
+
   interface Account {
     _id: string;
     name: string;
@@ -208,7 +208,11 @@ export default function Home() {
                             onClick={() => {
                               setCurrentAccount(account._id);
                               setCurrentPage("AccountDetails");
-                              setCurrentAccountObj(account);
+                              setCurrentAccountObj({
+                                ...account,
+                                revenue: typeof account.revenue === 'number' ? account.revenue : parseFloat(account.revenue.$numberDecimal),
+                                spent: typeof account.spent === 'number' ? account.spent : parseFloat(account.spent.$numberDecimal)
+                              });
                             }}
                             style={{
                               backgroundColor: index % 2 === 0 ? "#001821" : "#002636",
