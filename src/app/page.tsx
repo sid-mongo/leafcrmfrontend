@@ -111,9 +111,15 @@ export default function Home() {
   }]);
 
   useEffect(() => {
-    fetch("http://localhost:8080/api/v1/leafycrm/accounts")
+    fetch("https://leafycrm-backend-sa-ncr.sa-demo.staging.corp.mongodb.com/api/v1/leafycrm/accounts", {
+      mode: 'cors',
+      headers: {
+        'Access-Control-Allow-Origin': '*'
+      }
+    })
       .then(response => response.json())
       .then(data => {
+        console.log(data);
         setAccounts(data.accounts);
         setPerformanceAndOutput(data.execution_time);
         setErrOut("");
