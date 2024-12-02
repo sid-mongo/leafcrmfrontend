@@ -138,7 +138,7 @@ export default function Home() {
 
   useEffect(() => {
     if (currentPage === "Accounts") {
-      fetch("https://leafycrm-backend-sa-ncr.sa-demo.staging.corp.mongodb.com/api/v1/leafycrm/accounts", {
+      fetch("http://ec2-3-6-116-209.ap-south-1.compute.amazonaws.com:8080/api/v1/leafycrm/accounts", {
         mode: 'cors',
         headers: {
           'Access-Control-Allow-Origin': '*'
